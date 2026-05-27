@@ -475,6 +475,23 @@ html,body{
   z-index:100;display:none;align-items:flex-end;
 }
 .modal-back.open{display:flex;}
+.modal-back.open .modal{
+  animation:modalSlideUp 0.22s cubic-bezier(0.32,0.72,0,1) both;
+}
+@keyframes modalSlideUp{
+  from{transform:translateY(100%);opacity:0.6;}
+  to{transform:translateY(0);opacity:1;}
+}
+@keyframes folderDrillIn{
+  from{transform:translateY(-18px);opacity:0;}
+  to{transform:translateY(0);opacity:1;}
+}
+@keyframes folderDrillOut{
+  from{transform:translateY(18px);opacity:0;}
+  to{transform:translateY(0);opacity:1;}
+}
+.drill-in{animation:folderDrillIn 0.18s cubic-bezier(0.32,0.72,0,1) both;}
+.drill-out{animation:folderDrillOut 0.18s cubic-bezier(0.32,0.72,0,1) both;}
 .modal{
   background:var(--bg1);
   border-radius:22px 22px 0 0;
@@ -1303,7 +1320,15 @@ function renderFolderPills() {
   }
 }
 
-function pickFolder(id) { selFolder = id; renderInventory(); }
+function pickFolder(id) {
+  const el = document.getElementById('items-list');
+  const goingDeeper = id !== null && (selFolder === null || id !== selFolder);
+  selFolder = id;
+  renderInventory();
+  el.classList.remove('drill-in','drill-out');
+  void el.offsetWidth; // force reflow
+  el.classList.add(goingDeeper ? 'drill-in' : 'drill-out');
+}
 
 function renderItemList() {
   const q = searchQ.toLowerCase();

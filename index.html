@@ -972,6 +972,14 @@ let D = {
 
 function dbLoad() {
   try {
+    // Migrate old key to new key if needed
+    const old = localStorage.getItem('stockscan_data');
+    const current = localStorage.getItem('stockscan_db');
+    if (old && !current) {
+      localStorage.setItem('stockscan_db', old);
+      localStorage.removeItem('stockscan_data');
+    }
+
     const s = localStorage.getItem('stockscan_db');
     if (s) {
       const parsed = JSON.parse(s);

@@ -1820,13 +1820,10 @@ function fbInit() {
           _initialSyncDone = false;
           _fbDb.ref().off();
           _fbDb.ref(`users/${user.uid}/stockscan`).on('value', (snap) => {
-            if (_suppressRemoteUpdate) return;
             const data = snap.val();
-            if (data && data.updatedAt && data.updatedAt > (D.updatedAt || 0)) {
-              D.items = data.items || [];
-              D.folders = data.folders || [{id:'f-default', name:'General', color:'#f59e0b'}];
 
-              // Merge history: combine local + remote, dedupe by ts, keep newest 200
+            // Always merge history regardless of suppress flag
+            if (data && data.history) {
               const remoteHistory = data.history || [];
               const localHistory = D.history || [];
               const seen = new Set();
@@ -1838,23 +1835,29 @@ function fbInit() {
                 })
                 .sort((a, b) => b.ts - a.ts)
                 .slice(0, 200);
-              D.history = merged;
-
-              D.updatedAt = data.updatedAt;
-              dbSave(true); // Save locally without pushing back up
-              // Push merged history back so remote is also up to date
-              if (currentUser && _fbDb) {
-                _fbDb.ref(`users/${currentUser.uid}/stockscan/history`).set(merged);
+              if (merged.length !== localHistory.length ||
+                  merged.some((h, i) => h.ts !== (localHistory[i] && localHistory[i].ts))) {
+                D.history = merged;
+                localStorage.setItem('stockscan_db', JSON.stringify(D));
+                if (currentTab === 'history') renderHistory();
               }
-              
+            }
+
+            // Items/folders only update when not suppressed and remote is newer
+            if (!_suppressRemoteUpdate && data && data.updatedAt && data.updatedAt > (D.updatedAt || 0)) {
+              D.items = data.items || [];
+              D.folders = data.folders || [{id:'f-default', name:'General', color:'#f59e0b'}];
+              D.updatedAt = data.updatedAt;
+              dbSave(true);
+
               if (document.getElementById('view-inventory').classList.contains('active')) renderInventory();
               if (document.getElementById('view-history').classList.contains('active')) renderHistory();
               toast('Inventory synced from cloud', 'ok');
             }
+
             // Initial sync is done — now safe to push
             if (!_initialSyncDone) {
               _initialSyncDone = true;
-              // Only push if local data is actually newer than what's in Firebase
               if (!data || (D.updatedAt || 0) > (data.updatedAt || 0)) {
                 fbPush();
               }

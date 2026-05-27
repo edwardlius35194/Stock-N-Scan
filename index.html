@@ -1318,9 +1318,8 @@ function renderItemList() {
   } else if (selFolder !== null) {
     items = items.filter(i => i.folderId === selFolder);
   } else {
-    // root view: only items whose folder has no parent
-    const rootFolderIds = D.folders.filter(f => !f.parentId).map(f => f.id);
-    items = items.filter(i => rootFolderIds.includes(i.folderId));
+    // root view: only show items not assigned to any named folder
+    items = items.filter(i => i.folderId === 'f-default');
   }
 
   items.sort((a,b) => (a.title||'').localeCompare(b.title||''));

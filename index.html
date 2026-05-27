@@ -1344,7 +1344,7 @@ function renderItemList() {
           <div class="item-name">${esc(f.name)}</div>
           <div class="item-bc">${meta}</div>
         </div>
-        <span class="fpill-edit" onclick="event.stopPropagation();openFolderModal('${f.id}')" style="opacity:0.45;font-size:13px;padding:6px">✎</span>
+        <span class="fpill-edit" onclick="event.stopPropagation();openFolderModal('${f.id}')" style="opacity:0.55;padding:6px;display:flex;align-items:center;justify-content:center"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></span>
         <span class="sf-chevron" style="font-size:18px">›</span>
       </div>`;
     }).join('');

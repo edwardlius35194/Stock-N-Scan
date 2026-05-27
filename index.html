@@ -949,7 +949,8 @@ const SHEET_ID = 'YOUR_SHEET_ID_HERE'; // <-- REPLACE THIS
 
 function doPost(e) {
   try {
-    const data = JSON.parse(e.postData.contents);
+    const raw = e.postData ? e.postData.contents : '{}';
+    const data = JSON.parse(raw);
     const ss = SpreadsheetApp.openById(SHEET_ID);
     let sheet = ss.getSheetByName('Inventory');
     
@@ -970,34 +971,37 @@ function doPost(e) {
     // Prepare map of folder IDs to names
     const folderMap = {};
     if (data.folders) {
-      data.folders.forEach(f => {
-        folderMap[f.id] = f.name;
-      });
+      data.folders.forEach(f => { folderMap[f.id] = f.name; });
     }
     
     // Write rows
     if (data.items && data.items.length > 0) {
-      const rows = data.items.map(item => {
-        return [
-          item.id || '',
-          item.barcode || '',
-          item.title || '',
-          folderMap[item.folderId] || 'General',
-          item.price || 0,
-          item.quantity || 0,
-          item.updatedAt ? new Date(item.updatedAt).toLocaleString() : ''
-        ];
-      });
+      const rows = data.items.map(item => [
+        item.id || '',
+        item.barcode || '',
+        item.title || '',
+        folderMap[item.folderId] || 'General',
+        item.price || 0,
+        item.quantity || 0,
+        item.updatedAt ? new Date(item.updatedAt).toLocaleString() : ''
+      ]);
       sheet.getRange(2, 1, rows.length, 7).setValues(rows);
     }
     
-    return ContentService.createTextOutput(JSON.stringify({success:true, count: data.items ? data.items.length : 0}))
-      .setMimeType(ContentService.MimeType.JSON);
+    const out = ContentService.createTextOutput(JSON.stringify({success:true, count: data.items ? data.items.length : 0}));
+    out.setMimeType(ContentService.MimeType.JSON);
+    return out;
       
   } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({success:false, error: err.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
+    const out = ContentService.createTextOutput(JSON.stringify({success:false, error: err.toString()}));
+    out.setMimeType(ContentService.MimeType.JSON);
+    return out;
   }
+}
+
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
+    .setMimeType(ContentService.MimeType.JSON);
 }`;
 
 document.getElementById('script-code-box').textContent = APPS_SCRIPT;
@@ -1843,15 +1847,15 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
   };
   
   try {
+    // Send as text/plain to avoid CORS preflight (Apps Script doesn't handle OPTIONS)
     const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify(payload)
     });
     
-    if (!res.ok) throw new Error("Network response was not ok");
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const result = await res.json().catch(() => ({success: true}));
+    if (result.success === false) throw new Error(result.error || 'Script returned error');
     
     D.settings.lastSync = Date.now();
     dbSave();
@@ -1860,7 +1864,7 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
     
   } catch(e) {
     console.error(e);
-    toast('Sync failed. Check URL or network.', 'err');
+    toast('Sync failed: ' + e.message, 'err');
   }
 });
 
@@ -1908,7 +1912,6 @@ function csvCell(s) {
 }
 
 // Import
-document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-file').click());
 document.getElementById('import-file').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -1925,6 +1928,7 @@ document.getElementById('import-file').addEventListener('change', (e) => {
       };
       dbSave();
       renderSettings();
+      renderInventory();
       toast(`Imported ${imp.items.length} items`, 'ok');
     } catch(err) {
       toast('Import failed — ' + (err.message || 'invalid file'), 'err');

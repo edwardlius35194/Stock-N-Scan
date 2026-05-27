@@ -1524,10 +1524,7 @@ function renderFolderPickerList(goingUp) {
   const backBtn = document.getElementById('fp-back-btn');
   backBtn.style.display = _pickerNavId ? 'flex' : 'none';
 
-  // Build rows
-  const subs = childFolders(_pickerNavId);
-
-  // "Select this folder" row — show when inside a subfolder
+  // "Use this folder" row — shown when inside any folder
   let selectRow = '';
   if (_pickerNavId) {
     const f = folderById(_pickerNavId);
@@ -1537,21 +1534,19 @@ function renderFolderPickerList(goingUp) {
       <span class="fp-row-name" style="${isSelected?'color:var(--accent)':''}">Use "${esc(f.name)}"</span>
       ${isSelected?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
     </div>`;
-  } else {
-    // At root, show General as selectable
-    const isSelected = _pickerFolderId === 'f-default';
-    const gen = folderById('f-default');
-    selectRow = `<div class="fp-row ${isSelected?'selected':''}" onclick="fpSelect('f-default')">
-      <span style="width:10px;height:10px;border-radius:50%;background:${gen?.color||'#f59e0b'};flex-shrink:0;display:inline-block"></span>
-      <span class="fp-row-name" style="${isSelected?'color:var(--accent)':''}">General</span>
-      ${isSelected?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
-    </div>`;
   }
 
-  const subRows = subs.filter(f => f.id !== 'f-default').map(f => {
+  // Folders at current level — at root include all parentless folders (incl. f-default)
+  const subs = _pickerNavId === null
+    ? D.folders.filter(f => !f.parentId)
+    : D.folders.filter(f => f.parentId === _pickerNavId);
+
+  const subRows = subs.map(f => {
     const hasSubs = D.folders.some(c => c.parentId === f.id);
     const isSelected = _pickerFolderId === f.id;
-    return `<div class="fp-row ${isSelected?'selected':''}" onclick="fpNav('${f.id}')">
+    // Navigate in if has subfolders, otherwise select directly
+    const action = hasSubs ? `fpNav('${f.id}')` : `fpSelect('${f.id}')`;
+    return `<div class="fp-row ${isSelected?'selected':''}" onclick="${action}">
       <span style="width:10px;height:10px;border-radius:50%;background:${f.color};flex-shrink:0;display:inline-block"></span>
       <span class="fp-row-name" style="${isSelected?'color:var(--accent)':''}">${esc(f.name)}</span>
       ${isSelected?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>':''}

@@ -707,11 +707,11 @@ html,body{
     <div class="fi-row">
       <div class="fg">
         <label>Price ($)</label>
-        <input type="number" class="fi" id="ei-price" placeholder="0.00" min="0" step="0.01" inputmode="decimal">
+        <input type="number" class="fi" id="ei-price" placeholder="0.00" min="0" step="0.01" inputmode="decimal" onfocus="this.select()">
       </div>
       <div class="fg">
         <label>Quantity</label>
-        <input type="number" class="fi" id="ei-qty" placeholder="0" min="0" inputmode="numeric">
+        <input type="number" class="fi" id="ei-qty" placeholder="0" min="0" inputmode="numeric" onfocus="this.select()">
       </div>
     </div>
     <div class="fg">
@@ -737,10 +737,6 @@ html,body{
     <div class="fg">
       <label>Folder Name</label>
       <input type="text" class="fi" id="ef-name" placeholder="e.g. Electronics">
-    </div>
-    <div class="fg">
-      <label>Inside Folder <span style="font-weight:400;color:var(--txt3)">(optional)</span></label>
-      <div class="fchips" id="ef-parent-chips" style="flex-wrap:wrap;gap:7px"></div>
     </div>
     <div class="fg">
       <label>Color</label>
@@ -1180,7 +1176,6 @@ function renderFolderPills() {
   if (selFolder) {
     const path = folderPath(selFolder);
     const cur = folderById(selFolder);
-    const backId = cur?.parentId || null;
     crumb.innerHTML =
       `<span class="crumb-item" onclick="pickFolder(null)">All</span>` +
       path.map((f, i) =>
@@ -1406,7 +1401,9 @@ document.getElementById('ef-save').addEventListener('click', () => {
     saveFolder(_editFolderId, {name, color:_folderColor});
     toast('Folder updated', 'ok');
   } else {
-    addFolder({id:uid(), name, color:_folderColor});
+    const newFolder = {id:uid(), name, color:_folderColor};
+    if (selFolder) newFolder.parentId = selFolder;
+    addFolder(newFolder);
     toast('Folder created', 'ok');
   }
   closeModal('modal-folder');

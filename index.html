@@ -403,6 +403,10 @@ html,body{
 }
 .hist-icon.add{background:rgba(34,197,94,0.14);color:var(--green);}
 .hist-icon.rem{background:rgba(239,68,68,0.14);color:var(--red);}
+.hist-icon.new{background:rgba(59,130,246,0.14);color:#3b82f6;}
+.hist-icon.edit{background:rgba(245,158,11,0.14);color:var(--accent);}
+.hist-icon.del{background:rgba(239,68,68,0.14);color:var(--red);}
+.hist-icon.folder{background:rgba(139,92,246,0.14);color:#8b5cf6;}
 .hist-info{flex:1;min-width:0;}
 .hist-name{
   font-size:14px;font-weight:600;
@@ -1288,7 +1292,7 @@ function openItemModal(itemId, preBC='') {
     document.getElementById('ei-barcode').value = preBC;
     document.getElementById('ei-title').value = '';
     document.getElementById('ei-price').value = '';
-    document.getElementById('ei-qty').value = '';
+    document.getElementById('ei-qty').value = 0;
   }
 
   // Folder chips
@@ -1325,10 +1329,13 @@ document.getElementById('ei-save').addEventListener('click', () => {
 
   if (_editItemId) {
     saveItem(_editItemId, {barcode:bc, title, price, quantity:qty, folderId});
+    pushHistory({action:'item_edit', itemId:_editItemId, itemTitle:title, barcode:bc});
     toast('Item updated', 'ok');
   } else {
-    addItem({id:uid(), barcode:bc, title, price, quantity:qty, folderId,
+    const newId = uid();
+    addItem({id:newId, barcode:bc, title, price, quantity:qty, folderId,
              createdAt:Date.now(), updatedAt:Date.now()});
+    pushHistory({action:'item_add', itemId:newId, itemTitle:title, barcode:bc});
     toast('Item added', 'ok');
   }
   closeModal('modal-item');
@@ -1340,6 +1347,8 @@ document.getElementById('ei-cancel').addEventListener('click', () => closeModal(
 document.getElementById('ei-delete').addEventListener('click', () => {
   if (!_editItemId) return;
   if (!confirm('Delete this item permanently?')) return;
+  const deletedItem = itemById(_editItemId);
+  pushHistory({action:'item_delete', itemId:_editItemId, itemTitle:deletedItem?.title, barcode:deletedItem?.barcode});
   removeItem(_editItemId);
   closeModal('modal-item');
   renderInventory();
@@ -1399,11 +1408,13 @@ document.getElementById('ef-save').addEventListener('click', () => {
 
   if (_editFolderId) {
     saveFolder(_editFolderId, {name, color:_folderColor});
+    pushHistory({action:'folder_edit', folderId:_editFolderId, folderName:name});
     toast('Folder updated', 'ok');
   } else {
     const newFolder = {id:uid(), name, color:_folderColor};
     if (selFolder) newFolder.parentId = selFolder;
     addFolder(newFolder);
+    pushHistory({action:'folder_add', folderId:newFolder.id, folderName:name});
     toast('Folder created', 'ok');
   }
   closeModal('modal-folder');
@@ -1415,6 +1426,8 @@ document.getElementById('ef-cancel').addEventListener('click', () => closeModal(
 document.getElementById('ef-delete').addEventListener('click', () => {
   if (!_editFolderId || _editFolderId === 'f-default') return;
   if (!confirm('Delete folder? Items will move to General.')) return;
+  const deletedFolder = folderById(_editFolderId);
+  pushHistory({action:'folder_delete', folderId:_editFolderId, folderName:deletedFolder?.name});
   removeFolder(_editFolderId);
   selFolder = null;
   closeModal('modal-folder');
@@ -1437,21 +1450,76 @@ function renderHistory() {
     el.innerHTML = `<div class="empty-state">
       <div class="eicon">🕐</div>
       <h3>No history yet</h3>
-      <p>Scan barcodes to see activity here.</p>
+      <p>Actions like scanning, adding, and deleting will appear here.</p>
     </div>`;
     return;
   }
 
   el.innerHTML = D.history.map(h => {
-    const isAdd = h.action === 'add';
-    const dStr = isAdd ? `+${h.delta}` : `${h.delta}`;
+    let iconClass, iconChar, name, detail, badge = '';
+
+    switch (h.action) {
+      case 'add':
+        iconClass = 'add'; iconChar = '+';
+        name = esc(h.itemTitle || 'Unknown');
+        detail = `${h.barcode ? esc(h.barcode) + ' · ' : ''}${timeAgo(h.ts)} · ${h.qBefore} → ${h.qAfter}`;
+        badge = `<div class="hist-delta add">+${h.delta}</div>`;
+        break;
+      case 'rem':
+        iconClass = 'rem'; iconChar = '−';
+        name = esc(h.itemTitle || 'Unknown');
+        detail = `${h.barcode ? esc(h.barcode) + ' · ' : ''}${timeAgo(h.ts)} · ${h.qBefore} → ${h.qAfter}`;
+        badge = `<div class="hist-delta rem">${h.delta}</div>`;
+        break;
+      case 'item_add':
+        iconClass = 'new'; iconChar = '✦';
+        name = esc(h.itemTitle || 'Unknown');
+        detail = `New item · ${timeAgo(h.ts)}`;
+        badge = `<div class="hist-delta new" style="font-size:11px;color:#3b82f6">ADDED</div>`;
+        break;
+      case 'item_edit':
+        iconClass = 'edit'; iconChar = '✎';
+        name = esc(h.itemTitle || 'Unknown');
+        detail = `Edited · ${timeAgo(h.ts)}`;
+        badge = `<div class="hist-delta edit" style="font-size:11px;color:var(--accent)">EDITED</div>`;
+        break;
+      case 'item_delete':
+        iconClass = 'del'; iconChar = '✕';
+        name = esc(h.itemTitle || 'Unknown');
+        detail = `Deleted · ${timeAgo(h.ts)}`;
+        badge = `<div class="hist-delta rem" style="font-size:11px">DELETED</div>`;
+        break;
+      case 'folder_add':
+        iconClass = 'folder'; iconChar = '▶';
+        name = esc(h.folderName || 'Folder');
+        detail = `New folder · ${timeAgo(h.ts)}`;
+        badge = `<div class="hist-delta" style="font-size:11px;color:#8b5cf6">FOLDER</div>`;
+        break;
+      case 'folder_edit':
+        iconClass = 'folder'; iconChar = '✎';
+        name = esc(h.folderName || 'Folder');
+        detail = `Folder renamed · ${timeAgo(h.ts)}`;
+        badge = `<div class="hist-delta" style="font-size:11px;color:#8b5cf6">FOLDER</div>`;
+        break;
+      case 'folder_delete':
+        iconClass = 'del'; iconChar = '✕';
+        name = esc(h.folderName || 'Folder');
+        detail = `Folder deleted · ${timeAgo(h.ts)}`;
+        badge = `<div class="hist-delta rem" style="font-size:11px">DELETED</div>`;
+        break;
+      default:
+        iconClass = 'add'; iconChar = '·';
+        name = esc(h.itemTitle || 'Event');
+        detail = timeAgo(h.ts);
+    }
+
     return `<div class="hist-row">
-      <div class="hist-icon ${isAdd?'add':'rem'}">${isAdd?'+':'−'}</div>
+      <div class="hist-icon ${iconClass}">${iconChar}</div>
       <div class="hist-info">
-        <div class="hist-name">${esc(h.itemTitle||'Unknown')}</div>
-        <div class="hist-time">${h.barcode||''} · ${timeAgo(h.ts)} · was ${h.qBefore} → ${h.qAfter}</div>
+        <div class="hist-name">${name}</div>
+        <div class="hist-time">${detail}</div>
       </div>
-      <div class="hist-delta ${isAdd?'add':'rem'}">${dStr}</div>
+      ${badge}
     </div>`;
   }).join('');
 }

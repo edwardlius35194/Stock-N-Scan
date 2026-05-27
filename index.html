@@ -1879,11 +1879,6 @@ document.getElementById('btn-firebase-login').addEventListener('click', () => {
   }
 });
 
-// Initialize on load
-fbInit();
-
-
-
 // ═══════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════
@@ -2112,6 +2107,7 @@ function today() {
 
 // Start
 dbLoad();
+fbInit(); // Must run after dbLoad so D.settings is populated
 gotoTab('scan');
 
 </script>

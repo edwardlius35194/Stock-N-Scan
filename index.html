@@ -1821,7 +1821,21 @@ function fbInit() {
             if (data && data.updatedAt && data.updatedAt > (D.updatedAt || 0)) {
               D.items = data.items || [];
               D.folders = data.folders || [{id:'f-default', name:'General', color:'#f59e0b'}];
-              D.history = data.history || [];
+
+              // Merge history: combine local + remote, dedupe by ts, keep newest 200
+              const remoteHistory = data.history || [];
+              const localHistory = D.history || [];
+              const seen = new Set();
+              const merged = [...localHistory, ...remoteHistory]
+                .filter(h => {
+                  if (!h.ts || seen.has(h.ts)) return false;
+                  seen.add(h.ts);
+                  return true;
+                })
+                .sort((a, b) => b.ts - a.ts)
+                .slice(0, 200);
+              D.history = merged;
+
               D.updatedAt = data.updatedAt;
               dbSave(true); // Save locally without pushing back up
               

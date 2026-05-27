@@ -513,7 +513,7 @@ html,body{
 }
 .fchip.on{background:var(--accent2);border-color:var(--accent);color:var(--accent);}
 
-/* Inline barcode scanner in modal */
+/* Barcode scan button in modal */
 .barcode-wrap{position:relative;}
 .barcode-scan-btn{
   position:absolute;right:10px;top:50%;transform:translateY(-50%);
@@ -522,26 +522,50 @@ html,body{
   border-radius:8px;transition:background 0.12s;
 }
 .barcode-scan-btn:active{background:var(--accent2);}
-.inline-scanner{
-  display:none;
-  margin-top:8px;border-radius:var(--radius);
-  overflow:hidden;background:#000;
-  position:relative;height:160px;
+
+/* Full-screen scan popup */
+.scan-popup{
+  position:fixed;inset:0;z-index:200;
+  background:#000;
+  display:none;flex-direction:column;
 }
-.inline-scanner.open{display:block;}
-.inline-scanner #qr-modal{width:100%;height:100%;}
-.inline-scanner #qr-modal video{
-  width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;
+.scan-popup.open{display:flex;}
+.scan-popup-cam{flex:1;position:relative;overflow:hidden;}
+.scan-popup-cam #qr-modal{
+  position:absolute!important;inset:0!important;
+  width:100%!important;height:100%!important;
+  border:0!important;
 }
-.inline-scanner-close{
-  position:absolute;top:8px;right:8px;z-index:10;
-  background:rgba(0,0,0,0.6);border:none;color:#fff;
-  border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;
+.scan-popup-cam #qr-modal video{
+  width:100%!important;height:100%!important;
+  object-fit:cover!important;display:block!important;
 }
-.inline-scanner-hint{
-  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
-  background:rgba(0,0,0,0.55);color:rgba(255,255,255,0.8);
-  font-size:11px;padding:4px 10px;border-radius:20px;white-space:nowrap;
+.scan-popup-cam #qr-modal *:not(video){
+  display:none!important;
+}
+/* Reuse overlay elements */
+.scan-popup .scan-overlay{position:absolute;inset:0;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;}
+/* Close button */
+.scan-popup-close{
+  position:absolute;
+  top:calc(var(--safe-top) + 14px);
+  left:16px;
+  z-index:10;
+  background:rgba(0,0,0,0.55);
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.15);
+  color:#fff;border-radius:22px;
+  padding:8px 18px;font-size:14px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+}
+.scan-popup-label{
+  position:absolute;
+  top:calc(var(--safe-top) + 14px);
+  left:50%;transform:translateX(-50%);
+  z-index:10;
+  color:rgba(255,255,255,0.75);font-size:14px;font-weight:600;
+  white-space:nowrap;
   pointer-events:none;
 }
 .cswatch-grid{display:flex;gap:10px;flex-wrap:wrap;}
@@ -739,11 +763,6 @@ html,body{
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="7" width="2" height="10" rx="1"/><rect x="7" y="7" width="1" height="10" rx=".5"/><rect x="10" y="7" width="3" height="10" rx="1"/><rect x="15" y="7" width="1" height="10" rx=".5"/><rect x="18" y="7" width="2" height="10" rx="1"/></svg>
         </button>
       </div>
-      <div class="inline-scanner" id="inline-scanner">
-        <div id="qr-modal"></div>
-        <button class="inline-scanner-close" onclick="modalScannerStop()">✕ Close</button>
-        <div class="inline-scanner-hint">Point at barcode</div>
-      </div>
     </div>
     <div class="fg">
       <label>Title</label>
@@ -769,6 +788,26 @@ html,body{
     </div>
     <div id="ei-del-wrap" style="margin-top:10px;display:none">
       <button class="btn btn-danger" id="ei-delete" style="width:100%">Delete Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCAN POPUP (from Add Item barcode button) ══ -->
+<div class="scan-popup" id="scan-popup">
+  <div class="scan-popup-cam">
+    <div id="qr-modal"></div>
+    <div class="scan-popup-label">Scan Barcode</div>
+    <button class="scan-popup-close" onclick="modalScannerStop()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      Close
+    </button>
+    <div class="scan-overlay">
+      <div class="scan-bg-shade"></div>
+      <div class="scan-frame">
+        <span></span>
+        <div class="scan-line"></div>
+      </div>
+      <p class="scan-hint">Point at barcode to scan</p>
     </div>
   </div>
 </div>
@@ -1704,8 +1743,8 @@ let _modalScannerRunning = false;
 async function modalScannerToggle() {
   if (_modalScannerRunning) { modalScannerStop(); return; }
 
-  const wrap = document.getElementById('inline-scanner');
-  wrap.classList.add('open');
+  const popup = document.getElementById('scan-popup');
+  popup.classList.add('open');
 
   // Ensure the qr-modal div is empty
   document.getElementById('qr-modal').innerHTML = '';
@@ -1725,7 +1764,7 @@ async function modalScannerToggle() {
     ];
   } catch(e) { formats = undefined; }
 
-  const cfg = {fps:10, qrbox:{width:240,height:100}};
+  const cfg = {fps:10, qrbox:{width:260,height:120}};
   if (formats) cfg.formatsToSupport = formats;
 
   _modalScanner = new Html5Qrcode('qr-modal', {verbose:false});
@@ -1742,7 +1781,7 @@ async function modalScannerToggle() {
     );
     _modalScannerRunning = true;
   } catch(err) {
-    wrap.classList.remove('open');
+    popup.classList.remove('open');
     toast('Camera not available', 'err');
     _modalScanner = null;
   }
@@ -1754,8 +1793,8 @@ async function modalScannerStop() {
   }
   _modalScanner = null;
   _modalScannerRunning = false;
-  const wrap = document.getElementById('inline-scanner');
-  wrap.classList.remove('open');
+  const popup = document.getElementById('scan-popup');
+  popup.classList.remove('open');
   document.getElementById('qr-modal').innerHTML = '';
 }
 

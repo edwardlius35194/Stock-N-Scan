@@ -316,9 +316,9 @@ html,body{
 
 .folder-crumb{
   display:flex;align-items:center;gap:5px;
-  padding:0 16px 5px;
+  padding:6px 16px 2px;
   font-size:12px;overflow-x:auto;scrollbar-width:none;
-  flex-wrap:nowrap;
+  flex-wrap:nowrap;min-height:0;
 }
 .folder-crumb:empty{display:none;}
 .folder-crumb::-webkit-scrollbar{display:none;}
@@ -573,17 +573,14 @@ html,body{
         <div class="view-title">Inventory</div>
         <div class="view-subtitle" id="inv-sub">Loading…</div>
       </div>
-      <button class="header-action" id="btn-folders">Folders ›</button>
+      <button class="header-action" id="btn-folders">New Folder</button>
     </div>
   </div>
   <div class="searchbar">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input type="text" id="search-input" placeholder="Search items or barcodes…">
   </div>
-  <div class="folders-bar">
-    <div id="folder-crumb" class="folder-crumb"></div>
-    <div class="folders-scroll" id="folders-scroll"></div>
-  </div>
+  <div id="folder-crumb" class="folder-crumb"></div>
   <div class="scroll">
     <div class="items-list" id="items-list"></div>
   </div>
@@ -740,6 +737,10 @@ html,body{
     <div class="fg">
       <label>Folder Name</label>
       <input type="text" class="fi" id="ef-name" placeholder="e.g. Electronics">
+    </div>
+    <div class="fg">
+      <label>Inside Folder <span style="font-weight:400;color:var(--txt3)">(optional)</span></label>
+      <div class="fchips" id="ef-parent-chips" style="flex-wrap:wrap;gap:7px"></div>
     </div>
     <div class="fg">
       <label>Color</label>
@@ -1174,12 +1175,12 @@ function renderInventory() {
 }
 
 function renderFolderPills() {
-  const el = document.getElementById('folders-scroll');
   const crumb = document.getElementById('folder-crumb');
 
-  // Breadcrumb
   if (selFolder) {
     const path = folderPath(selFolder);
+    const cur = folderById(selFolder);
+    const backId = cur?.parentId || null;
     crumb.innerHTML =
       `<span class="crumb-item" onclick="pickFolder(null)">All</span>` +
       path.map((f, i) =>
@@ -1191,31 +1192,6 @@ function renderFolderPills() {
   } else {
     crumb.innerHTML = '';
   }
-
-  // Pills: current-level folders
-  const levelFolders = childFolders(selFolder);
-  let html = '';
-
-  if (!selFolder) {
-    const allCount = D.items.length;
-    html = `<div class="fpill active" onclick="pickFolder(null)">All (${allCount})</div>`;
-  } else {
-    const cur = folderById(selFolder);
-    const backId = cur?.parentId || null;
-    html = `<div class="fpill" onclick="pickFolder(${backId ? `'${backId}'` : 'null'})">← Back</div>`;
-  }
-
-  levelFolders.forEach(f => {
-    const descIds = [f.id, ...allDescendantIds(f.id)];
-    const cnt = D.items.filter(i => descIds.includes(i.folderId)).length;
-    const hasSub = D.folders.some(c => c.parentId === f.id);
-    html += `<div class="fpill ${selFolder===f.id?'active':''}" onclick="pickFolder('${f.id}')">
-      <span class="fpill-dot" style="background:${f.color}"></span>${esc(f.name)}${hasSub?' ›':''} (${cnt})
-      <span class="fpill-edit" onclick="event.stopPropagation();openFolderModal('${f.id}')">✎</span>
-    </div>`;
-  });
-
-  el.innerHTML = html;
 }
 
 function pickFolder(id) { selFolder = id; renderInventory(); }
@@ -1231,7 +1207,32 @@ function renderItemList() {
   items.sort((a,b) => (a.title||'').localeCompare(b.title||''));
 
   const el = document.getElementById('items-list');
-  if (!items.length) {
+
+  // Subfolders at current level (hidden during search)
+  let folderHtml = '';
+  if (!q) {
+    const subs = childFolders(selFolder);
+    folderHtml = subs.map(f => {
+      const descIds = [f.id, ...allDescendantIds(f.id)];
+      const cnt = D.items.filter(i => descIds.includes(i.folderId)).length;
+      const subCount = D.folders.filter(c => c.parentId === f.id).length;
+      const meta = [
+        `${cnt} item${cnt!==1?'s':''}`,
+        subCount ? `${subCount} folder${subCount!==1?'s':''}` : ''
+      ].filter(Boolean).join(' · ');
+      return `<div class="subfolder-row" onclick="pickFolder('${f.id}')">
+        <span class="fpill-dot" style="background:${f.color};width:10px;height:10px"></span>
+        <div class="item-info">
+          <div class="item-name">${esc(f.name)}</div>
+          <div class="item-bc">${meta}</div>
+        </div>
+        <span class="fpill-edit" onclick="event.stopPropagation();openFolderModal('${f.id}')" style="opacity:0.45;font-size:13px;padding:6px">✎</span>
+        <span class="sf-chevron" style="font-size:18px">›</span>
+      </div>`;
+    }).join('');
+  }
+
+  if (!folderHtml && !items.length) {
     el.innerHTML = `<div class="empty-state">
       <div class="eicon">📦</div>
       <h3>${q ? 'No results' : 'No items yet'}</h3>
@@ -1239,7 +1240,8 @@ function renderItemList() {
     </div>`;
     return;
   }
-  el.innerHTML = items.map(item => {
+
+  const itemsHtml = items.map(item => {
     const f = folderById(item.folderId);
     const low = (item.quantity||0) <= 5;
     return `<div class="item-row" onclick="openItemModal('${item.id}')">
@@ -1254,6 +1256,8 @@ function renderItemList() {
       </div>
     </div>`;
   }).join('');
+
+  el.innerHTML = folderHtml + itemsHtml;
 }
 
 document.getElementById('search-input').addEventListener('input', e => {
@@ -1402,9 +1406,7 @@ document.getElementById('ef-save').addEventListener('click', () => {
     saveFolder(_editFolderId, {name, color:_folderColor});
     toast('Folder updated', 'ok');
   } else {
-    const newFolder = {id:uid(), name, color:_folderColor};
-    if (selFolder) newFolder.parentId = selFolder;
-    addFolder(newFolder);
+    addFolder({id:uid(), name, color:_folderColor});
     toast('Folder created', 'ok');
   }
   closeModal('modal-folder');

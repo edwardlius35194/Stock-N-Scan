@@ -534,6 +534,34 @@ html,body{
 }
 .fchip.on{background:var(--accent2);border-color:var(--accent);color:var(--accent);}
 
+/* Folder picker button */
+.folder-pick-btn{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:12px;padding:12px 14px;cursor:pointer;
+  transition:border-color 0.15s;
+}
+.folder-pick-btn:active{background:var(--bg3);}
+.folder-pick-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.folder-pick-name{flex:1;font-size:15px;color:var(--txt);}
+
+/* Folder picker rows */
+.fp-row{
+  display:flex;align-items:center;gap:11px;
+  background:var(--bg2);border-radius:var(--radius);
+  padding:13px 14px;cursor:pointer;
+  border:1.5px solid transparent;
+  transition:background 0.12s,border-color 0.12s;
+}
+.fp-row:active{background:var(--bg3);}
+.fp-row.selected{border-color:var(--accent);background:var(--accent2);}
+.fp-row-name{flex:1;font-size:15px;font-weight:500;}
+.fp-row-count{font-size:12px;color:var(--txt3);}
+@keyframes fpDrillIn{from{transform:translateY(-14px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fpDrillOut{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.fp-drill-in{animation:fpDrillIn 0.16s cubic-bezier(0.32,0.72,0,1) both}
+.fp-drill-out{animation:fpDrillOut 0.16s cubic-bezier(0.32,0.72,0,1) both}
+
 /* Barcode scan button in modal */
 .barcode-wrap{position:relative;}
 .barcode-scan-btn{
@@ -827,7 +855,11 @@ html,body{
     </div>
     <div class="fg">
       <label>Folder</label>
-      <div class="fchips" id="ei-folder-chips"></div>
+      <div class="folder-pick-btn" id="ei-folder-btn" onclick="openFolderPicker()">
+        <span class="folder-pick-dot" id="ei-folder-dot"></span>
+        <span class="folder-pick-name" id="ei-folder-name">General</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--txt3)"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:6px">
       <button class="btn btn-ghost" id="ei-cancel">Cancel</button>
@@ -836,6 +868,22 @@ html,body{
     <div id="ei-del-wrap" style="margin-top:10px;display:none">
       <button class="btn btn-danger" id="ei-delete" style="width:100%">Delete Item</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ FOLDER PICKER POPUP ══ -->
+<div class="modal-back" id="modal-folder-picker">
+  <div class="modal" style="padding-bottom:calc(16px + var(--safe-bottom))">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <button id="fp-back-btn" onclick="folderPickerBack()" style="background:none;border:none;color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;padding:0;display:none;align-items:center;gap:3px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        Back
+      </button>
+      <div class="modal-title" id="fp-title" style="margin-bottom:0;flex:1">Select Folder</div>
+      <button onclick="closeModal('modal-folder-picker')" style="background:none;border:none;color:var(--txt3);font-size:22px;line-height:1;cursor:pointer;padding:0">×</button>
+    </div>
+    <div id="fp-list" style="display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -1440,26 +1488,96 @@ function openItemModal(itemId, preBC='') {
     selFolderId = selFolder || 'f-default';
   }
 
-  // Folder chips
-  const chips = document.getElementById('ei-folder-chips');
-  chips.innerHTML = D.folders.map(f =>
-    `<div class="fchip ${f.id===selFolderId?'on':''}" data-fid="${f.id}" onclick="pickItemFolder('${f.id}')">
-      <span class="fpill-dot" style="background:${f.color}"></span>${esc(f.name)}
-    </div>`
-  ).join('');
+  // Folder picker button
+  updateFolderPickerBtn(selFolderId);
 
   openModal('modal-item');
 }
 
-function pickItemFolder(fid) {
-  document.querySelectorAll('#ei-folder-chips .fchip').forEach(c =>
-    c.classList.toggle('on', c.dataset.fid === fid)
-  );
+let _pickerFolderId = 'f-default'; // currently selected
+let _pickerNavId = null;           // currently browsing level
+
+function updateFolderPickerBtn(fid) {
+  _pickerFolderId = fid;
+  const f = folderById(fid);
+  document.getElementById('ei-folder-dot').style.background = f?.color || '#888';
+  document.getElementById('ei-folder-name').textContent = f?.name || 'General';
+}
+
+function openFolderPicker() {
+  _pickerNavId = null;
+  renderFolderPickerList(false);
+  openModal('modal-folder-picker');
+}
+
+function folderPickerBack() {
+  const cur = folderById(_pickerNavId);
+  _pickerNavId = cur?.parentId || null;
+  renderFolderPickerList(true);
+}
+
+function renderFolderPickerList(goingUp) {
+  const cur = _pickerNavId ? folderById(_pickerNavId) : null;
+
+  // Title & back button
+  document.getElementById('fp-title').textContent = cur ? cur.name : 'Select Folder';
+  const backBtn = document.getElementById('fp-back-btn');
+  backBtn.style.display = _pickerNavId ? 'flex' : 'none';
+
+  // Build rows
+  const subs = childFolders(_pickerNavId);
+
+  // "Select this folder" row — show when inside a subfolder
+  let selectRow = '';
+  if (_pickerNavId) {
+    const f = folderById(_pickerNavId);
+    const isSelected = _pickerFolderId === _pickerNavId;
+    selectRow = `<div class="fp-row ${isSelected?'selected':''}" onclick="fpSelect('${_pickerNavId}')">
+      <span style="width:10px;height:10px;border-radius:50%;background:${f.color};flex-shrink:0;display:inline-block"></span>
+      <span class="fp-row-name" style="${isSelected?'color:var(--accent)':''}">Use "${esc(f.name)}"</span>
+      ${isSelected?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
+    </div>`;
+  } else {
+    // At root, show General as selectable
+    const isSelected = _pickerFolderId === 'f-default';
+    const gen = folderById('f-default');
+    selectRow = `<div class="fp-row ${isSelected?'selected':''}" onclick="fpSelect('f-default')">
+      <span style="width:10px;height:10px;border-radius:50%;background:${gen?.color||'#f59e0b'};flex-shrink:0;display:inline-block"></span>
+      <span class="fp-row-name" style="${isSelected?'color:var(--accent)':''}">General</span>
+      ${isSelected?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
+    </div>`;
+  }
+
+  const subRows = subs.filter(f => f.id !== 'f-default').map(f => {
+    const hasSubs = D.folders.some(c => c.parentId === f.id);
+    const isSelected = _pickerFolderId === f.id;
+    return `<div class="fp-row ${isSelected?'selected':''}" onclick="fpNav('${f.id}')">
+      <span style="width:10px;height:10px;border-radius:50%;background:${f.color};flex-shrink:0;display:inline-block"></span>
+      <span class="fp-row-name" style="${isSelected?'color:var(--accent)':''}">${esc(f.name)}</span>
+      ${isSelected?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>':''}
+      ${hasSubs?`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 18l6-6-6-6"/></svg>`:''}
+    </div>`;
+  }).join('');
+
+  const list = document.getElementById('fp-list');
+  list.innerHTML = selectRow + subRows;
+  list.classList.remove('fp-drill-in','fp-drill-out');
+  void list.offsetWidth;
+  list.classList.add(goingUp ? 'fp-drill-out' : 'fp-drill-in');
+}
+
+function fpNav(fid) {
+  _pickerNavId = fid;
+  renderFolderPickerList(false);
+}
+
+function fpSelect(fid) {
+  updateFolderPickerBtn(fid);
+  closeModal('modal-folder-picker');
 }
 
 function getItemFolderSel() {
-  const sel = document.querySelector('#ei-folder-chips .fchip.on');
-  return sel ? sel.dataset.fid : 'f-default';
+  return _pickerFolderId || 'f-default';
 }
 
 document.getElementById('ei-save').addEventListener('click', () => {

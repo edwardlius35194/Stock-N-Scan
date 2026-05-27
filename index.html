@@ -1360,7 +1360,7 @@ function renderInventory() {
   const crumbEl = document.getElementById('folder-crumb');
   if (selFolder) {
     const path = folderPath(selFolder);
-    let html = `<div class="crumb-item" onclick="selFolder=null;renderInventory()">Root</div>`;
+    let html = `<div class="crumb-item" onclick="selFolder=null;renderInventory()">Home</div>`;
     path.forEach(f => {
       html += `<div class="crumb-sep">/</div>
                <div class="crumb-item ${f.id===selFolder?'cur':''}" onclick="selFolder='${f.id}';renderInventory()">${esc(f.name)}</div>`;
@@ -1401,17 +1401,13 @@ function renderInventory() {
   if (q) {
     list = list.filter(i => (i.title||'').toLowerCase().includes(q) || (i.barcode||'').toLowerCase().includes(q));
   } else {
-    list = list.filter(i => i.folderId === selFolder || (selFolder === null && !i.folderId));
-  }
-  
-  // Also show f-default items at root
-  if (!q && selFolder === null) {
-     const defaultList = D.items.filter(i => i.folderId === 'f-default');
-     // merge without dupes
-     const existingIds = new Set(list.map(i => i.id));
-     defaultList.forEach(i => {
-       if (!existingIds.has(i.id)) list.push(i);
-     });
+    list = list.filter(i => {
+      if (selFolder === null) {
+        // At root: show items with no folder, null folderId, or assigned to f-default
+        return !i.folderId || i.folderId === 'f-default';
+      }
+      return i.folderId === selFolder;
+    });
   }
 
   const listEl = document.getElementById('items-list');
@@ -1498,7 +1494,7 @@ function openItemModal(id, initialBarcode='') {
     document.getElementById('ei-barcode').value = initialBarcode;
     document.getElementById('ei-title').value = '';
     document.getElementById('ei-price').value = '';
-    document.getElementById('ei-qty').value = 1;
+    document.getElementById('ei-qty').value = '';
     // Default to current active folder, fallback to default
     _pickerFolderId = (selFolder && selFolder !== null) ? selFolder : 'f-default';
   }

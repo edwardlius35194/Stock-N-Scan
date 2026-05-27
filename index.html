@@ -13,6 +13,7 @@
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -727,10 +728,16 @@ html,body{
       </div>
       <div class="set-row" id="btn-firebase-connect" style="cursor:pointer">
         <div class="set-ico" style="background:rgba(34,197,94,0.12)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="#22c55e"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="2"/><circle cx="12" cy="4" r="2"/></svg>
         </div>
-        <div class="set-label" id="firebase-status-lbl">Not connected</div>
-        <div class="set-val" id="firebase-conn-lbl">Connect</div>
+        <div class="set-label" id="firebase-conn-lbl">Save Config & Reload</div>
+      </div>
+      
+      <div class="set-row" id="btn-firebase-login" style="cursor:pointer; display:none;">
+        <div class="set-ico" style="background:rgba(59,130,246,0.12)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        </div>
+        <div class="set-label" id="firebase-login-lbl">Sign in with Google</div>
       </div>
       <div class="set-row" id="btn-firebase-help">
         <div class="set-ico" style="background:rgba(99,102,241,0.12)">
@@ -1755,91 +1762,93 @@ document.getElementById('btn-clear-hist').addEventListener('click', () => {
   }
 });
 
-// ═══════════════════════════════════════
-// FIREBASE SYNC
-// ═══════════════════════════════════════
-let _fbApp = null;
-let _fbDb = null;
-let _fbListener = null;
-let _fbConnected = false;
-let _suppressRemoteUpdate = false;
-
-function fbConnect() {
-  const url = document.getElementById('firebase-url').value.trim();
-  const apiKey = document.getElementById('firebase-apikey').value.trim();
-  if (!url || !apiKey) return toast('Enter Firebase URL and API Key', 'err');
-
-  D.settings.firebaseUrl = url;
-  D.settings.firebaseApiKey = apiKey;
-  dbSave();
-
-  try {
-    fbDisconnect();
-
-    // Use compat SDK (loaded via script tag, always available)
-    const appName = 'stockscan-' + Date.now();
-    _fbApp = firebase.initializeApp({ apiKey, databaseURL: url }, appName);
-    _fbDb = _fbApp.database();
-
-    const dbRef = _fbDb.ref('stockscan');
-
-    _fbListener = dbRef.on('value', (snapshot) => {
-      if (_suppressRemoteUpdate) return;
-      const remote = snapshot.val();
-      if (!remote) {
-        fbPush();
-        return;
-      }
-      // Per-item last-write-wins merge
-      const remoteItemMap = {};
-      (remote.items || []).forEach(i => remoteItemMap[i.id] = i);
-      const localItemMap = {};
-      D.items.forEach(i => localItemMap[i.id] = i);
-      const allIds = new Set([...Object.keys(remoteItemMap), ...Object.keys(localItemMap)]);
-      const merged = [];
-      allIds.forEach(id => {
-        const r = remoteItemMap[id];
-        const l = localItemMap[id];
-        if (r && l) merged.push((r.updatedAt||0) >= (l.updatedAt||0) ? r : l);
-        else merged.push(r || l);
-      });
-      D.items = merged;
-      D.folders = remote.folders || D.folders;
-      dbSave();
-      renderInventory();
-      if (currentTab === 'history') renderHistory();
-    }, (err) => {
-      toast('Firebase error: ' + err.message, 'err');
-      setFbStatus(false);
-    });
-
-    _fbConnected = true;
-    setFbStatus(true);
-    toast('Connected — syncing in real time', 'ok');
-  } catch(e) {
-    toast('Connection failed: ' + e.message, 'err');
-    setFbStatus(false);
-  }
+function dbSave(skipPush = false) {
+  D.updatedAt = Date.now();
+  localStorage.setItem('stockscan_data', JSON.stringify(D));
+  if (!skipPush) fbPush();
 }
 
-function fbDisconnect() {
-  if (_fbDb && _fbListener) {
-    _fbDb.ref('stockscan').off('value', _fbListener);
+// ═══════════════════════════════════════
+// FIREBASE SYNC (SECURED WITH AUTH)
+// ═══════════════════════════════════════
+let _fbDb = null;
+let _fbConnected = false;
+let _suppressRemoteUpdate = false;
+let currentUser = null;
+
+function fbInit() {
+  const urlInput = document.getElementById('firebase-url');
+  const keyInput = document.getElementById('firebase-apikey');
+  if (urlInput) urlInput.value = D.settings.fbUrl || '';
+  if (keyInput) keyInput.value = D.settings.fbKey || '';
+
+  if (D.settings.fbUrl && D.settings.fbKey) {
+    try {
+      // Auto-extract Project ID from URL to construct Auth Domain
+      const urlObj = new URL(D.settings.fbUrl);
+      const projectId = urlObj.hostname.split('.')[0].replace('-default-rtdb', '');
+      
+      if (!firebase.apps.length) {
+        firebase.initializeApp({
+          apiKey: D.settings.fbKey,
+          databaseURL: D.settings.fbUrl,
+          authDomain: projectId + ".firebaseapp.com",
+          projectId: projectId
+        });
+      }
+      _fbDb = firebase.database();
+      document.getElementById('btn-firebase-login').style.display = 'flex';
+      
+      // Listen for Google Logins
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          currentUser = user;
+          document.getElementById('firebase-login-lbl').textContent = "Sign out (" + user.email + ")";
+          setFbStatus(true);
+          
+          // Disconnect old global listener and point to the User's private folder
+          _fbDb.ref().off();
+          _fbDb.ref(`users/${user.uid}/stockscan`).on('value', (snap) => {
+            if (_suppressRemoteUpdate) return;
+            const data = snap.val();
+            if (data && data.updatedAt && data.updatedAt > (D.updatedAt || 0)) {
+              D.items = data.items || [];
+              D.folders = data.folders || [{id:'f-default', name:'General', color:'#f59e0b'}];
+              D.history = data.history || [];
+              D.updatedAt = data.updatedAt;
+              dbSave(true); // Save locally without pushing back up
+              
+              if (document.getElementById('view-inventory').classList.contains('active')) renderInventory();
+              if (document.getElementById('view-history').classList.contains('active')) renderHistory();
+              showToast('Inventory synced from cloud', 'ok');
+            }
+          });
+          
+          // Push immediately on login if local data is newer
+          fbPush();
+        } else {
+          // Logged out state
+          currentUser = null;
+          document.getElementById('firebase-login-lbl').textContent = "Sign in with Google";
+          setFbStatus(false);
+          if (_fbDb) _fbDb.ref().off();
+        }
+      });
+    } catch(e) {
+      console.error(e);
+      showToast('Firebase Init Error', 'err');
+    }
   }
-  try { if (_fbApp) _fbApp.delete(); } catch(e) {}
-  _fbListener = null;
-  _fbApp = null;
-  _fbDb = null;
-  _fbConnected = false;
 }
 
 function fbPush() {
-  if (!_fbConnected || !_fbDb || _suppressRemoteUpdate) return;
+  if (!_fbConnected || !_fbDb || _suppressRemoteUpdate || !currentUser) return;
   _suppressRemoteUpdate = true;
-  _fbDb.ref('stockscan').set({
+  _fbDb.ref(`users/${currentUser.uid}/stockscan`).set({
     items: D.items,
     folders: D.folders,
-    updatedAt: Date.now()
+    history: D.history,
+    updatedAt: D.updatedAt || Date.now()
   }).finally(() => {
     setTimeout(() => { _suppressRemoteUpdate = false; }, 300);
   });
@@ -1848,11 +1857,33 @@ function fbPush() {
 function setFbStatus(connected) {
   _fbConnected = connected;
   const lbl = document.getElementById('firebase-status-lbl');
-  const conn = document.getElementById('firebase-conn-lbl');
-  if (lbl) lbl.textContent = connected ? 'Connected · live sync on' : 'Not connected';
+  if (lbl) lbl.textContent = connected ? 'Connected & Synced' : 'Not logged in';
   if (lbl) lbl.style.color = connected ? 'var(--green,#22c55e)' : '';
-  if (conn) conn.textContent = connected ? 'Disconnect' : 'Connect';
 }
+
+document.getElementById('btn-firebase-connect').addEventListener('click', () => {
+  const url = document.getElementById('firebase-url').value.trim();
+  const key = document.getElementById('firebase-apikey').value.trim();
+  if (!url || !key) return showToast('Enter URL & API Key', 'err');
+  D.settings.fbUrl = url;
+  D.settings.fbKey = key;
+  dbSave(true);
+  window.location.reload(); // Reload to re-initialize Firebase
+});
+
+document.getElementById('btn-firebase-login').addEventListener('click', () => {
+  if (currentUser) {
+    firebase.auth().signOut().then(() => showToast('Signed out', 'ok'));
+  } else {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider).catch(err => {
+      showToast(err.message, 'err');
+    });
+  }
+});
+
+// Initialize on load
+fbInit();
 
 
 

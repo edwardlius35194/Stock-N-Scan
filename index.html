@@ -306,6 +306,40 @@ html,body{
   background:var(--accent2);border-color:var(--accent);color:var(--accent);
 }
 .fpill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.fpill-edit{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:15px;height:15px;margin-left:3px;opacity:0.4;
+  font-size:10px;cursor:pointer;flex-shrink:0;
+  border-radius:50%;transition:opacity 0.12s;
+}
+.fpill:active .fpill-edit,.fpill-edit:active{opacity:1;}
+
+.folder-crumb{
+  display:flex;align-items:center;gap:5px;
+  padding:0 16px 5px;
+  font-size:12px;overflow-x:auto;scrollbar-width:none;
+  flex-wrap:nowrap;
+}
+.folder-crumb:empty{display:none;}
+.folder-crumb::-webkit-scrollbar{display:none;}
+.crumb-sep{flex-shrink:0;color:var(--txt3);}
+.crumb-item{
+  cursor:pointer;color:var(--txt2);
+  white-space:nowrap;flex-shrink:0;
+  transition:color 0.12s;
+}
+.crumb-item:active{opacity:0.6;}
+.crumb-item.cur{color:var(--accent);font-weight:600;cursor:default;}
+
+.subfolder-row{
+  display:flex;align-items:center;
+  background:var(--bg1);border-radius:var(--radius);
+  padding:13px 14px;margin-bottom:7px;gap:11px;
+  cursor:pointer;transition:background 0.12s;
+  border:1px solid var(--border);
+}
+.subfolder-row:active{background:var(--bg2);}
+.sf-chevron{color:var(--txt3);flex-shrink:0;}
 
 .items-list{padding:4px 16px 80px;}
 
@@ -547,6 +581,7 @@ html,body{
     <input type="text" id="search-input" placeholder="Search items or barcodes…">
   </div>
   <div class="folders-bar">
+    <div id="folder-crumb" class="folder-crumb"></div>
     <div class="folders-scroll" id="folders-scroll"></div>
   </div>
   <div class="scroll">
@@ -707,6 +742,10 @@ html,body{
       <input type="text" class="fi" id="ef-name" placeholder="e.g. Electronics">
     </div>
     <div class="fg">
+      <label>Inside Folder <span style="font-weight:400;color:var(--txt3)">(optional)</span></label>
+      <div class="fchips" id="ef-parent-chips" style="flex-wrap:wrap;gap:7px"></div>
+    </div>
+    <div class="fg">
       <label>Color</label>
       <div class="cswatch-grid" id="ef-colors"></div>
     </div>
@@ -829,6 +868,30 @@ function itemByBarcode(bc) { return D.items.find(i => i.barcode === bc); }
 function itemById(id) { return D.items.find(i => i.id === id); }
 function folderById(id) { return D.folders.find(f => f.id === id); }
 
+function childFolders(parentId) {
+  return D.folders.filter(f => (f.parentId || null) === (parentId || null));
+}
+function folderPath(id) {
+  const path = [];
+  let cur = folderById(id);
+  while (cur) {
+    path.unshift(cur);
+    cur = cur.parentId ? folderById(cur.parentId) : null;
+  }
+  return path;
+}
+function allDescendantIds(id) {
+  const result = [];
+  const stack = [id];
+  while (stack.length) {
+    const cur = stack.pop();
+    D.folders.filter(f => f.parentId === cur).forEach(c => {
+      result.push(c.id); stack.push(c.id);
+    });
+  }
+  return result;
+}
+
 function addItem(item) { D.items.push(item); dbSave(); }
 function saveItem(id, patch) {
   const idx = D.items.findIndex(i => i.id === id);
@@ -861,8 +924,9 @@ function saveFolder(id, patch) {
   dbSave();
 }
 function removeFolder(id) {
-  D.items.forEach(i => { if (i.folderId === id) i.folderId = 'f-default'; });
-  D.folders = D.folders.filter(f => f.id !== id);
+  const toRemove = [id, ...allDescendantIds(id)];
+  D.items.forEach(i => { if (toRemove.includes(i.folderId)) i.folderId = 'f-default'; });
+  D.folders = D.folders.filter(f => !toRemove.includes(f.id));
   dbSave();
 }
 
@@ -1115,14 +1179,46 @@ function renderInventory() {
 
 function renderFolderPills() {
   const el = document.getElementById('folders-scroll');
-  const allCount = D.items.length;
-  let html = `<div class="fpill ${selFolder===null?'active':''}" onclick="pickFolder(null)">All (${allCount})</div>`;
-  D.folders.forEach(f => {
-    const cnt = D.items.filter(i => i.folderId === f.id).length;
+  const crumb = document.getElementById('folder-crumb');
+
+  // Breadcrumb
+  if (selFolder) {
+    const path = folderPath(selFolder);
+    crumb.innerHTML =
+      `<span class="crumb-item" onclick="pickFolder(null)">All</span>` +
+      path.map((f, i) =>
+        `<span class="crumb-sep">›</span>` +
+        (i < path.length - 1
+          ? `<span class="crumb-item" onclick="pickFolder('${f.id}')">${esc(f.name)}</span>`
+          : `<span class="crumb-item cur">${esc(f.name)}</span>`)
+      ).join('');
+  } else {
+    crumb.innerHTML = '';
+  }
+
+  // Pills: current-level folders
+  const levelFolders = childFolders(selFolder);
+  let html = '';
+
+  if (!selFolder) {
+    const allCount = D.items.length;
+    html = `<div class="fpill active" onclick="pickFolder(null)">All (${allCount})</div>`;
+  } else {
+    const cur = folderById(selFolder);
+    const backId = cur?.parentId || null;
+    html = `<div class="fpill" onclick="pickFolder(${backId ? `'${backId}'` : 'null'})">← Back</div>`;
+  }
+
+  levelFolders.forEach(f => {
+    const descIds = [f.id, ...allDescendantIds(f.id)];
+    const cnt = D.items.filter(i => descIds.includes(i.folderId)).length;
+    const hasSub = D.folders.some(c => c.parentId === f.id);
     html += `<div class="fpill ${selFolder===f.id?'active':''}" onclick="pickFolder('${f.id}')">
-      <span class="fpill-dot" style="background:${f.color}"></span>${esc(f.name)} (${cnt})
+      <span class="fpill-dot" style="background:${f.color}"></span>${esc(f.name)}${hasSub?' ›':''} (${cnt})
+      <span class="fpill-edit" onclick="event.stopPropagation();openFolderModal('${f.id}')">✎</span>
     </div>`;
   });
+
   el.innerHTML = html;
 }
 

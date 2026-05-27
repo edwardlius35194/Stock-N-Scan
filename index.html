@@ -513,7 +513,37 @@ html,body{
 }
 .fchip.on{background:var(--accent2);border-color:var(--accent);color:var(--accent);}
 
-/* Color swatches */
+/* Inline barcode scanner in modal */
+.barcode-wrap{position:relative;}
+.barcode-scan-btn{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  background:none;border:none;cursor:pointer;
+  color:var(--accent);padding:6px;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;transition:background 0.12s;
+}
+.barcode-scan-btn:active{background:var(--accent2);}
+.inline-scanner{
+  display:none;
+  margin-top:8px;border-radius:var(--radius);
+  overflow:hidden;background:#000;
+  position:relative;height:160px;
+}
+.inline-scanner.open{display:block;}
+.inline-scanner #qr-modal{width:100%;height:100%;}
+.inline-scanner #qr-modal video{
+  width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;
+}
+.inline-scanner-close{
+  position:absolute;top:8px;right:8px;z-index:10;
+  background:rgba(0,0,0,0.6);border:none;color:#fff;
+  border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;cursor:pointer;
+}
+.inline-scanner-hint{
+  position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,0.55);color:rgba(255,255,255,0.8);
+  font-size:11px;padding:4px 10px;border-radius:20px;white-space:nowrap;
+  pointer-events:none;
+}
 .cswatch-grid{display:flex;gap:10px;flex-wrap:wrap;}
 .cswatch{
   width:34px;height:34px;border-radius:50%;
@@ -703,7 +733,17 @@ html,body{
     <input type="hidden" id="ei-id">
     <div class="fg">
       <label>Barcode</label>
-      <input type="text" class="fi" id="ei-barcode" placeholder="Scan or enter barcode" inputmode="text">
+      <div class="barcode-wrap">
+        <input type="text" class="fi" id="ei-barcode" placeholder="Enter or scan barcode" inputmode="text" style="padding-right:42px">
+        <button class="barcode-scan-btn" onclick="modalScannerToggle()" id="barcode-scan-btn" title="Scan barcode">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="7" width="2" height="10" rx="1"/><rect x="7" y="7" width="1" height="10" rx=".5"/><rect x="10" y="7" width="3" height="10" rx="1"/><rect x="15" y="7" width="1" height="10" rx=".5"/><rect x="18" y="7" width="2" height="10" rx="1"/></svg>
+        </button>
+      </div>
+      <div class="inline-scanner" id="inline-scanner">
+        <div id="qr-modal"></div>
+        <button class="inline-scanner-close" onclick="modalScannerStop()">✕ Close</button>
+        <div class="inline-scanner-hint">Point at barcode</div>
+      </div>
     </div>
     <div class="fg">
       <label>Title</label>
@@ -1339,11 +1379,12 @@ document.getElementById('ei-save').addEventListener('click', () => {
     pushHistory({action:'item_add', itemId:newId, itemTitle:title, barcode:bc});
     toast('Item added', 'ok');
   }
+  modalScannerStop();
   closeModal('modal-item');
   renderInventory();
 });
 
-document.getElementById('ei-cancel').addEventListener('click', () => closeModal('modal-item'));
+document.getElementById('ei-cancel').addEventListener('click', () => { modalScannerStop(); closeModal('modal-item'); });
 
 document.getElementById('ei-delete').addEventListener('click', () => {
   if (!_editItemId) return;
@@ -1351,6 +1392,7 @@ document.getElementById('ei-delete').addEventListener('click', () => {
   const deletedItem = itemById(_editItemId);
   pushHistory({action:'item_delete', itemId:_editItemId, itemTitle:deletedItem?.title, barcode:deletedItem?.barcode});
   removeItem(_editItemId);
+  modalScannerStop();
   closeModal('modal-item');
   renderInventory();
   toast('Item deleted');
@@ -1653,8 +1695,71 @@ document.getElementById('btn-clear-all').addEventListener('click', () => {
 });
 
 // ═══════════════════════════════════════
-// MODAL SYSTEM
+// MODAL INLINE SCANNER
 // ═══════════════════════════════════════
+
+let _modalScanner = null;
+let _modalScannerRunning = false;
+
+async function modalScannerToggle() {
+  if (_modalScannerRunning) { modalScannerStop(); return; }
+
+  const wrap = document.getElementById('inline-scanner');
+  wrap.classList.add('open');
+
+  // Ensure the qr-modal div is empty
+  document.getElementById('qr-modal').innerHTML = '';
+
+  let formats;
+  try {
+    formats = [
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.ITF,
+      Html5QrcodeSupportedFormats.DATA_MATRIX,
+    ];
+  } catch(e) { formats = undefined; }
+
+  const cfg = {fps:10, qrbox:{width:240,height:100}};
+  if (formats) cfg.formatsToSupport = formats;
+
+  _modalScanner = new Html5Qrcode('qr-modal', {verbose:false});
+  try {
+    await _modalScanner.start(
+      {facingMode:'environment'}, cfg,
+      code => {
+        document.getElementById('ei-barcode').value = code;
+        modalScannerStop();
+        // Focus title field for quick entry
+        setTimeout(() => document.getElementById('ei-title').focus(), 100);
+      },
+      () => {}
+    );
+    _modalScannerRunning = true;
+  } catch(err) {
+    wrap.classList.remove('open');
+    toast('Camera not available', 'err');
+    _modalScanner = null;
+  }
+}
+
+async function modalScannerStop() {
+  if (_modalScanner && _modalScannerRunning) {
+    try { await _modalScanner.stop(); } catch(e) {}
+  }
+  _modalScanner = null;
+  _modalScannerRunning = false;
+  const wrap = document.getElementById('inline-scanner');
+  wrap.classList.remove('open');
+  document.getElementById('qr-modal').innerHTML = '';
+}
+
+
 
 function openModal(id) {
   document.getElementById(id).classList.add('open');

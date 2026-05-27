@@ -1401,13 +1401,7 @@ function renderInventory() {
   if (q) {
     list = list.filter(i => (i.title||'').toLowerCase().includes(q) || (i.barcode||'').toLowerCase().includes(q));
   } else {
-    list = list.filter(i => {
-      if (selFolder === null) {
-        // At root: show items with no folder, null folderId, or assigned to f-default
-        return !i.folderId || i.folderId === 'f-default';
-      }
-      return i.folderId === selFolder;
-    });
+    list = selFolder === null ? [] : list.filter(i => i.folderId === selFolder);
   }
 
   const listEl = document.getElementById('items-list');
@@ -1415,8 +1409,8 @@ function renderInventory() {
     listEl.innerHTML = `
       <div class="empty-state">
         <div class="eicon">📦</div>
-        <h3>${q ? 'No results found' : 'Folder is empty'}</h3>
-        <p>${q ? 'Try a different search term.' : 'Add folders or items here.'}</p>
+        <h3>${q ? 'No results found' : selFolder === null ? 'No folders yet' : 'Folder is empty'}</h3>
+        <p>${q ? 'Try a different search term.' : selFolder === null ? 'Tap + to add a folder.' : 'Add items here.'}</p>
       </div>`;
     return;
   }

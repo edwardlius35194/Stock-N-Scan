@@ -1779,6 +1779,7 @@ function dbSave(skipPush = false) {
 let _fbDb = null;
 let _fbConnected = false;
 let _suppressRemoteUpdate = false;
+let _initialSyncDone = false;
 let currentUser = null;
 
 function fbInit() {
@@ -1812,6 +1813,7 @@ function fbInit() {
           setFbStatus(true);
           
           // Disconnect old global listener and point to the User's private folder
+          _initialSyncDone = false;
           _fbDb.ref().off();
           _fbDb.ref(`users/${user.uid}/stockscan`).on('value', (snap) => {
             if (_suppressRemoteUpdate) return;
@@ -1827,10 +1829,15 @@ function fbInit() {
               if (document.getElementById('view-history').classList.contains('active')) renderHistory();
               toast('Inventory synced from cloud', 'ok');
             }
+            // Initial sync is done — now safe to push
+            if (!_initialSyncDone) {
+              _initialSyncDone = true;
+              // Only push if local data is actually newer than what's in Firebase
+              if (!data || (D.updatedAt || 0) > (data.updatedAt || 0)) {
+                fbPush();
+              }
+            }
           });
-          
-          // Push immediately on login if local data is newer
-          fbPush();
         } else {
           // Logged out state
           currentUser = null;
@@ -1847,7 +1854,7 @@ function fbInit() {
 }
 
 function fbPush() {
-  if (!_fbConnected || !_fbDb || _suppressRemoteUpdate || !currentUser) return;
+  if (!_fbConnected || !_fbDb || _suppressRemoteUpdate || !currentUser || !_initialSyncDone) return;
   _suppressRemoteUpdate = true;
   _fbDb.ref(`users/${currentUser.uid}/stockscan`).set({
     items: D.items,

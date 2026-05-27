@@ -1308,11 +1308,21 @@ function pickFolder(id) { selFolder = id; renderInventory(); }
 function renderItemList() {
   const q = searchQ.toLowerCase();
   let items = [...D.items];
-  if (selFolder !== null) items = items.filter(i => i.folderId === selFolder);
-  if (q) items = items.filter(i =>
-    (i.title||'').toLowerCase().includes(q) ||
-    (i.barcode||'').toLowerCase().includes(q)
-  );
+
+  if (q) {
+    // search cuts across all folders
+    items = items.filter(i =>
+      (i.title||'').toLowerCase().includes(q) ||
+      (i.barcode||'').toLowerCase().includes(q)
+    );
+  } else if (selFolder !== null) {
+    items = items.filter(i => i.folderId === selFolder);
+  } else {
+    // root view: only items whose folder has no parent
+    const rootFolderIds = D.folders.filter(f => !f.parentId).map(f => f.id);
+    items = items.filter(i => rootFolderIds.includes(i.folderId));
+  }
+
   items.sort((a,b) => (a.title||'').localeCompare(b.title||''));
 
   const el = document.getElementById('items-list');

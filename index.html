@@ -775,7 +775,7 @@ html,body{
       </div>
       <div class="fg">
         <label>Quantity</label>
-        <input type="number" class="fi" id="ei-qty" placeholder="0" min="0" inputmode="numeric" onfocus="this.select()">
+        <input type="number" class="fi" id="ei-qty" placeholder="0" min="0" inputmode="numeric">
       </div>
     </div>
     <div class="fg">
@@ -1366,13 +1366,13 @@ function openItemModal(itemId, preBC='') {
     document.getElementById('ei-barcode').value = item.barcode || '';
     document.getElementById('ei-title').value = item.title || '';
     document.getElementById('ei-price').value = item.price || '';
-    document.getElementById('ei-qty').value = item.quantity || 0;
+    document.getElementById('ei-qty').value = item.quantity != null ? item.quantity : '';
     selFolderId = item.folderId || 'f-default';
   } else {
     document.getElementById('ei-barcode').value = preBC;
     document.getElementById('ei-title').value = '';
     document.getElementById('ei-price').value = '';
-    document.getElementById('ei-qty').value = 0;
+    document.getElementById('ei-qty').value = '';
   }
 
   // Folder chips

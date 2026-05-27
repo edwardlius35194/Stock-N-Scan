@@ -11,6 +11,8 @@
 <link rel="manifest" href="manifest.json">
 <title>Stock N' Scan</title>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -714,19 +716,23 @@ html,body{
   <div class="scroll">
 
     <div class="set-section">
-      <div class="set-head">Google Sheets Sync</div>
+      <div class="set-head">Firebase Sync</div>
       <div class="set-input-wrap">
-        <label class="set-input-label">Apps Script Web App URL</label>
-        <input type="url" class="set-input" id="sheets-url" placeholder="https://script.google.com/macros/s/…">
+        <label class="set-input-label">Firebase Database URL</label>
+        <input type="url" class="set-input" id="firebase-url" placeholder="https://your-project-default-rtdb.firebaseio.com">
       </div>
-      <div class="set-row" id="btn-sync">
+      <div class="set-input-wrap">
+        <label class="set-input-label">API Key</label>
+        <input type="text" class="set-input" id="firebase-apikey" placeholder="AIzaSy…">
+      </div>
+      <div class="set-row" id="btn-firebase-connect" style="cursor:pointer">
         <div class="set-ico" style="background:rgba(34,197,94,0.12)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="#22c55e"/></svg>
         </div>
-        <div class="set-label">Sync to Google Sheets</div>
-        <div class="set-val" id="last-sync-lbl">Never synced</div>
+        <div class="set-label" id="firebase-status-lbl">Not connected</div>
+        <div class="set-val" id="firebase-conn-lbl">Connect</div>
       </div>
-      <div class="set-row" id="btn-sheets-help">
+      <div class="set-row" id="btn-firebase-help">
         <div class="set-ico" style="background:rgba(99,102,241,0.12)">
           <svg viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
         </div>
@@ -914,25 +920,27 @@ html,body{
   </div>
 </div>
 
-<div class="modal-back" id="modal-sheets-help">
+<div class="modal-back" id="modal-firebase-help">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">Google Sheets Setup</div>
+    <div class="modal-title">Firebase Setup</div>
     <p style="font-size:14px;color:var(--txt2);line-height:1.65;margin-bottom:14px">
-      Stock N' Scan can push your inventory to a Google Sheet on demand. Here's how:
+      Set up a free Firebase project to sync inventory across devices in real time.
     </p>
-    <ol style="padding-left:18px;font-size:14px;color:var(--txt2);line-height:2;display:flex;flex-direction:column;gap:0">
-      <li>Open <strong style="color:var(--txt)">script.google.com</strong> and create a new project</li>
-      <li>Delete existing code and paste the script below</li>
-      <li>Replace <code style="color:var(--accent)">YOUR_SHEET_ID</code> with your Google Sheet's ID (from its URL)</li>
-      <li>Click <strong style="color:var(--txt)">Deploy → New deployment</strong></li>
-      <li>Type: <strong style="color:var(--txt)">Web app</strong> · Execute as: <strong style="color:var(--txt)">Me</strong> · Access: <strong style="color:var(--txt)">Anyone</strong></li>
-      <li>Copy the Web app URL and paste it into Settings above</li>
+    <ol style="padding-left:18px;font-size:14px;color:var(--txt2);line-height:2.2">
+      <li>Go to <strong style="color:var(--txt)">console.firebase.google.com</strong></li>
+      <li>Create a new project (skip Analytics)</li>
+      <li>Click <strong style="color:var(--txt)">Realtime Database</strong> → Create database</li>
+      <li>Start in <strong style="color:var(--txt)">test mode</strong> (you can secure it later)</li>
+      <li>Copy the database URL — looks like:<br><code style="color:var(--accent);font-size:12px">https://your-project-rtdb.firebaseio.com</code></li>
+      <li>Go to <strong style="color:var(--txt)">Project Settings → General</strong></li>
+      <li>Under "Your apps" click <strong style="color:var(--txt)">&lt;/&gt; Web</strong>, register app</li>
+      <li>Copy the <strong style="color:var(--txt)">apiKey</strong> from the config shown</li>
+      <li>Paste both values into Settings and tap <strong style="color:var(--txt)">Connect</strong></li>
     </ol>
-    <div id="script-code-box" style="margin-top:14px;background:var(--bg2);border-radius:10px;padding:12px;font-family:monospace;font-size:11.5px;color:#d4d4d4;white-space:pre-wrap;word-break:break-all;border:1px solid rgba(255,255,255,0.05);max-height:180px;overflow-y:auto"></div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn btn-ghost" id="btn-sheets-help-close">Close</button>
-      <button class="btn btn-primary" id="btn-copy-script">Copy Script</button>
+    <p style="font-size:12px;color:var(--txt3);margin-top:12px;line-height:1.5">Any device with the same URL + API key will share and sync the same inventory automatically.</p>
+    <div style="margin-top:16px">
+      <button class="btn btn-ghost" id="btn-firebase-help-close">Close</button>
     </div>
   </div>
 </div>
@@ -944,67 +952,6 @@ html,body{
 // CONSTANTS & APPS SCRIPT
 // ═══════════════════════════════════════
 const COLORS = ['#f59e0b','#ef4444','#22c55e','#3b82f6','#a855f7','#ec4899','#14b8a6','#8b5cf6'];
-const APPS_SCRIPT = `// Apps Script for Stock N' Scan
-const SHEET_ID = 'YOUR_SHEET_ID_HERE'; // <-- REPLACE THIS
-
-function doPost(e) {
-  try {
-    const raw = e.postData ? e.postData.contents : '{}';
-    const data = JSON.parse(raw);
-    const ss = SpreadsheetApp.openById(SHEET_ID);
-    let sheet = ss.getSheetByName('Inventory');
-    
-    // Create sheet if missing
-    if (!sheet) {
-      sheet = ss.insertSheet('Inventory');
-      sheet.appendRow(['ID', 'Barcode', 'Title', 'Folder', 'Price', 'Quantity', 'Last Updated']);
-      sheet.getRange("A1:G1").setFontWeight("bold");
-      sheet.setFrozenRows(1);
-    }
-    
-    // Clear old data
-    const lastRow = sheet.getLastRow();
-    if (lastRow > 1) {
-      sheet.getRange(2, 1, lastRow - 1, 7).clearContent();
-    }
-    
-    // Prepare map of folder IDs to names
-    const folderMap = {};
-    if (data.folders) {
-      data.folders.forEach(f => { folderMap[f.id] = f.name; });
-    }
-    
-    // Write rows
-    if (data.items && data.items.length > 0) {
-      const rows = data.items.map(item => [
-        item.id || '',
-        item.barcode || '',
-        item.title || '',
-        folderMap[item.folderId] || 'General',
-        item.price || 0,
-        item.quantity || 0,
-        item.updatedAt ? new Date(item.updatedAt).toLocaleString() : ''
-      ]);
-      sheet.getRange(2, 1, rows.length, 7).setValues(rows);
-    }
-    
-    const out = ContentService.createTextOutput(JSON.stringify({success:true, count: data.items ? data.items.length : 0}));
-    out.setMimeType(ContentService.MimeType.JSON);
-    return out;
-      
-  } catch(err) {
-    const out = ContentService.createTextOutput(JSON.stringify({success:false, error: err.toString()}));
-    out.setMimeType(ContentService.MimeType.JSON);
-    return out;
-  }
-}
-
-function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({status:'ok'}))
-    .setMimeType(ContentService.MimeType.JSON);
-}`;
-
-document.getElementById('script-code-box').textContent = APPS_SCRIPT;
 
 // ═══════════════════════════════════════
 // DATABASE (Local Storage)
@@ -1013,7 +960,7 @@ let D = {
   folders: [{id:'f-default', name:'General', color:'#f59e0b'}],
   items: [],
   history: [],
-  settings: { sheetsUrl: '', lastSync: 0 }
+  settings: { firebaseUrl: '', firebaseApiKey: '' }
 };
 
 function dbLoad() {
@@ -1024,7 +971,7 @@ function dbLoad() {
       D.folders = parsed.folders || [{id:'f-default', name:'General', color:'#f59e0b'}];
       D.items = parsed.items || [];
       D.history = parsed.history || [];
-      D.settings = parsed.settings || { sheetsUrl: '', lastSync: 0 };
+      D.settings = parsed.settings || { firebaseUrl: '', firebaseApiKey: '' };
     }
   } catch(e) { console.error('DB Load Error', e); }
 }
@@ -1032,6 +979,7 @@ function dbLoad() {
 function dbSave() {
   try {
     localStorage.setItem('stockscan_db', JSON.stringify(D));
+    if (typeof fbPush === 'function') fbPush();
   } catch(e) { console.error('DB Save Error', e); }
 }
 
@@ -1808,13 +1756,113 @@ document.getElementById('btn-clear-hist').addEventListener('click', () => {
 });
 
 // ═══════════════════════════════════════
+// FIREBASE SYNC
+// ═══════════════════════════════════════
+let _fbApp = null;
+let _fbDb = null;
+let _fbListener = null;
+let _fbConnected = false;
+let _suppressRemoteUpdate = false;
+
+function fbConnect() {
+  const url = document.getElementById('firebase-url').value.trim();
+  const apiKey = document.getElementById('firebase-apikey').value.trim();
+  if (!url || !apiKey) return toast('Enter Firebase URL and API Key', 'err');
+
+  D.settings.firebaseUrl = url;
+  D.settings.firebaseApiKey = apiKey;
+  dbSave();
+
+  try {
+    fbDisconnect();
+
+    // Use compat SDK (loaded via script tag, always available)
+    const appName = 'stockscan-' + Date.now();
+    _fbApp = firebase.initializeApp({ apiKey, databaseURL: url }, appName);
+    _fbDb = _fbApp.database();
+
+    const dbRef = _fbDb.ref('stockscan');
+
+    _fbListener = dbRef.on('value', (snapshot) => {
+      if (_suppressRemoteUpdate) return;
+      const remote = snapshot.val();
+      if (!remote) {
+        fbPush();
+        return;
+      }
+      // Per-item last-write-wins merge
+      const remoteItemMap = {};
+      (remote.items || []).forEach(i => remoteItemMap[i.id] = i);
+      const localItemMap = {};
+      D.items.forEach(i => localItemMap[i.id] = i);
+      const allIds = new Set([...Object.keys(remoteItemMap), ...Object.keys(localItemMap)]);
+      const merged = [];
+      allIds.forEach(id => {
+        const r = remoteItemMap[id];
+        const l = localItemMap[id];
+        if (r && l) merged.push((r.updatedAt||0) >= (l.updatedAt||0) ? r : l);
+        else merged.push(r || l);
+      });
+      D.items = merged;
+      D.folders = remote.folders || D.folders;
+      dbSave();
+      renderInventory();
+      if (currentTab === 'history') renderHistory();
+    }, (err) => {
+      toast('Firebase error: ' + err.message, 'err');
+      setFbStatus(false);
+    });
+
+    _fbConnected = true;
+    setFbStatus(true);
+    toast('Connected — syncing in real time', 'ok');
+  } catch(e) {
+    toast('Connection failed: ' + e.message, 'err');
+    setFbStatus(false);
+  }
+}
+
+function fbDisconnect() {
+  if (_fbDb && _fbListener) {
+    _fbDb.ref('stockscan').off('value', _fbListener);
+  }
+  try { if (_fbApp) _fbApp.delete(); } catch(e) {}
+  _fbListener = null;
+  _fbApp = null;
+  _fbDb = null;
+  _fbConnected = false;
+}
+
+function fbPush() {
+  if (!_fbConnected || !_fbDb || _suppressRemoteUpdate) return;
+  _suppressRemoteUpdate = true;
+  _fbDb.ref('stockscan').set({
+    items: D.items,
+    folders: D.folders,
+    updatedAt: Date.now()
+  }).finally(() => {
+    setTimeout(() => { _suppressRemoteUpdate = false; }, 300);
+  });
+}
+
+function setFbStatus(connected) {
+  _fbConnected = connected;
+  const lbl = document.getElementById('firebase-status-lbl');
+  const conn = document.getElementById('firebase-conn-lbl');
+  if (lbl) lbl.textContent = connected ? 'Connected · live sync on' : 'Not connected';
+  if (lbl) lbl.style.color = connected ? 'var(--green,#22c55e)' : '';
+  if (conn) conn.textContent = connected ? 'Disconnect' : 'Connect';
+}
+
+
+
+// ═══════════════════════════════════════
 // SETTINGS
 // ═══════════════════════════════════════
 function renderSettings() {
-  document.getElementById('sheets-url').value = D.settings.sheetsUrl || '';
-  const last = D.settings.lastSync;
-  document.getElementById('last-sync-lbl').textContent = last ? new Date(last).toLocaleString() : 'Never synced';
-  
+  document.getElementById('firebase-url').value = D.settings.firebaseUrl || '';
+  document.getElementById('firebase-apikey').value = D.settings.firebaseApiKey || '';
+
   // Calc storage
   const str = localStorage.getItem('stockscan_db') || '';
   const bytes = new Blob([str]).size;
@@ -1822,64 +1870,31 @@ function renderSettings() {
   if (bytes > 1024) sSize = (bytes/1024).toFixed(1) + ' KB';
   if (bytes > 1024*1024) sSize = (bytes/(1024*1024)).toFixed(1) + ' MB';
   document.getElementById('storage-lbl').textContent = sSize;
+
+  setFbStatus(_fbConnected);
 }
 
-document.getElementById('sheets-url').addEventListener('change', (e) => {
-  D.settings.sheetsUrl = e.target.value.trim();
-  dbSave();
-});
-
-// FIX: Google Sheets Sync - Removed mode: 'no-cors'
-document.getElementById('btn-sync').addEventListener('click', async () => {
-  const url = D.settings.sheetsUrl;
-  if (!url || !url.startsWith('https://script.google.com/')) {
-    return toast('Enter a valid Apps Script Web App URL first', 'err');
-  }
-  if (!D.items.length) {
-    return toast('Inventory is empty', 'err');
-  }
-  
-  toast('Syncing...', '');
-  
-  const payload = {
-    items: D.items,
-    folders: D.folders
-  };
-  
-  try {
-    // Send as text/plain to avoid CORS preflight (Apps Script doesn't handle OPTIONS)
-    const res = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(payload)
-    });
-    
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const result = await res.json().catch(() => ({success: true}));
-    if (result.success === false) throw new Error(result.error || 'Script returned error');
-    
-    D.settings.lastSync = Date.now();
-    dbSave();
-    renderSettings();
-    toast('Sync successful', 'ok');
-    
-  } catch(e) {
-    console.error(e);
-    toast('Sync failed: ' + e.message, 'err');
-  }
-});
-
-document.getElementById('btn-sheets-help').addEventListener('click', () => openModal('modal-sheets-help'));
-document.getElementById('btn-sheets-help-close').addEventListener('click', () => closeModal('modal-sheets-help'));
-
-document.getElementById('btn-copy-script').addEventListener('click', () => {
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(APPS_SCRIPT)
-      .then(() => toast('Script copied!', 'ok'))
-      .catch(() => toast('Copy failed', 'err'));
+document.getElementById('btn-firebase-connect').addEventListener('click', () => {
+  if (_fbConnected) {
+    fbDisconnect();
+    setFbStatus(false);
+    toast('Disconnected', '');
   } else {
-    toast('Copy not available — select text manually', 'err');
+    fbConnect();
   }
 });
+
+document.getElementById('btn-firebase-help').addEventListener('click', () => openModal('modal-firebase-help'));
+document.getElementById('btn-firebase-help-close').addEventListener('click', () => closeModal('modal-firebase-help'));
+
+// Auto-reconnect on load if credentials are saved
+if (D.settings.firebaseUrl && D.settings.firebaseApiKey) {
+  fbConnect();
+}
+
+// ═══════════════════════════════════════
+// DATA EXPORT / IMPORT / CLEAR
+// ═══════════════════════════════════════
 
 // Export JSON
 document.getElementById('btn-export-json').addEventListener('click', () => {
@@ -1908,10 +1923,10 @@ document.getElementById('btn-export-csv').addEventListener('click', () => {
 });
 
 function csvCell(s) {
-  return `"${String(s).replace(/"/g,'""')}"`;
+  return '"' + String(s).replace(/"/g, '""') + '"';
 }
 
-// Import
+// Import / Restore
 document.getElementById('import-file').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
@@ -1924,7 +1939,7 @@ document.getElementById('import-file').addEventListener('change', (e) => {
         folders:  imp.folders,
         items:    imp.items,
         history:  imp.history  || [],
-        settings: imp.settings || { sheetsUrl: '', lastSync: 0 }
+        settings: imp.settings || { firebaseUrl: '', firebaseApiKey: '' }
       };
       dbSave();
       renderSettings();
@@ -1949,6 +1964,7 @@ document.getElementById('btn-clear-all').addEventListener('click', () => {
     settings
   };
   dbSave();
+  renderInventory();
   renderSettings();
   toast('All data cleared');
 });

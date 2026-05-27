@@ -996,8 +996,12 @@ function dbLoad() {
 function pushHistory(entry) {
   entry.ts = Date.now();
   D.history.unshift(entry);
-  if (D.history.length > 200) D.history.length = 200; // Limit
+  if (D.history.length > 200) D.history.length = 200;
   dbSave();
+  // Write history directly to Firebase immediately, independent of main sync
+  if (_fbDb && currentUser && _initialSyncDone) {
+    _fbDb.ref(`users/${currentUser.uid}/stockscan/history`).set(D.history);
+  }
   if (currentTab === 'history') renderHistory();
 }
 

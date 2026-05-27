@@ -1010,7 +1010,6 @@ const Scanner = {
   onScan(code) {
     if (!this.acceptScan) return;
     this.acceptScan = false;
-    setTimeout(() => { this.acceptScan = true; }, 3000);
     handleScan(code);
   }
 };

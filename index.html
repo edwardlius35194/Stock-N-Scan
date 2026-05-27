@@ -1076,7 +1076,8 @@ function adjustQty(id, delta) {
   item.updatedAt = Date.now();
   pushHistory({
     itemId: id, itemTitle: item.title, barcode: item.barcode,
-    action: delta >= 0 ? 'add' : 'rem', delta, qBefore: before, qAfter: item.quantity
+    action: delta >= 0 ? 'add' : 'rem', delta, qBefore: before, qAfter: item.quantity,
+    folderColor: folderById(item.folderId)?.color || '#888'
   });
   dbSave();
   return item;
@@ -1565,12 +1566,14 @@ document.getElementById('ei-save').addEventListener('click', () => {
   if (_editItemId) {
     const old = itemById(_editItemId);
     saveItem(_editItemId, payload);
-    pushHistory({action:'item_edit', itemId:_editItemId, itemTitle:title, barcode:bc});
+    pushHistory({action:'item_edit', itemId:_editItemId, itemTitle:title, barcode:bc,
+      folderColor: folderById(_pickerFolderId)?.color || '#888'});
     toast('Item saved', 'ok');
   } else {
     const newId = genId();
     addItem({...payload, id:newId, createdAt:Date.now(), updatedAt:Date.now()});
-    pushHistory({action:'item_add', itemId:newId, itemTitle:title, barcode:bc});
+    pushHistory({action:'item_add', itemId:newId, itemTitle:title, barcode:bc,
+      folderColor: folderById(_pickerFolderId)?.color || '#888'});
     toast('Item added', 'ok');
   }
   
@@ -1589,7 +1592,8 @@ document.getElementById('ei-delete').addEventListener('click', () => {
   if (!confirm('Delete this item permanently?')) return;
   
   const deletedItem = itemById(_editItemId);
-  pushHistory({action:'item_delete', itemId:_editItemId, itemTitle:deletedItem?.title, barcode:deletedItem?.barcode});
+  pushHistory({action:'item_delete', itemId:_editItemId, itemTitle:deletedItem?.title, barcode:deletedItem?.barcode,
+    folderColor: folderById(deletedItem?.folderId)?.color || '#888'});
   
   removeItem(_editItemId);
   modalScannerStop();
@@ -1647,12 +1651,12 @@ document.getElementById('ef-save').addEventListener('click', () => {
   
   if (_editFolderId) {
     saveFolder(_editFolderId, {name, color:_folderColor});
-    pushHistory({action:'folder_edit', folderId:_editFolderId, folderName:name});
+    pushHistory({action:'folder_edit', folderId:_editFolderId, folderName:name, folderColor:_folderColor});
     toast('Folder updated', 'ok');
   } else {
     const newId = genId('f');
     addFolder({id:newId, name, color:_folderColor, parentId: selFolder});
-    pushHistory({action:'folder_add', folderId:newId, folderName:name});
+    pushHistory({action:'folder_add', folderId:newId, folderName:name, folderColor:_folderColor});
     toast('Folder created', 'ok');
   }
   closeModal('modal-folder');
@@ -1666,7 +1670,7 @@ document.getElementById('ef-delete').addEventListener('click', () => {
   if (!confirm('Delete folder? Items inside will be moved to General.')) return;
   
   const deletedFolder = folderById(_editFolderId);
-  pushHistory({action:'folder_delete', folderId:_editFolderId, folderName:deletedFolder?.name});
+  pushHistory({action:'folder_delete', folderId:_editFolderId, folderName:deletedFolder?.name, folderColor:deletedFolder?.color || '#888'});
   
   removeFolder(_editFolderId);
   closeModal('modal-folder');
@@ -1698,52 +1702,54 @@ function renderHistory() {
   
   el.innerHTML = D.history.map(h => {
     let iconHtml = '', name = '', detail = '', badge = '';
-    
+    const itemColor = h.folderColor || (h.itemId ? folderById(itemById(h.itemId)?.folderId)?.color : null) || '#888';
+    const folderColor = h.folderColor || '#888';
+
     switch(h.action) {
       case 'add':
-        iconHtml = `<div class="hist-icon add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>`;
+        iconHtml = `<div class="hist-icon" style="background:rgba(34,197,94,0.14)"><svg viewBox="0 0 24 24" fill="none" stroke="${itemColor}" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9" stroke="${itemColor}" stroke-width="1.5"/><line x1="12" y1="7" x2="12" y2="17"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div>`;
         name = esc(h.itemTitle || 'Unknown');
         detail = `${h.barcode ? esc(h.barcode) + ' · ' : ''}${timeAgo(h.ts)} · ${h.qBefore} → ${h.qAfter}`;
         badge = `<div class="hist-delta add">+${h.delta}</div>`;
         break;
       case 'rem':
-        iconHtml = `<div class="hist-icon rem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg></div>`;
+        iconHtml = `<div class="hist-icon" style="background:rgba(239,68,68,0.14)"><svg viewBox="0 0 24 24" fill="none" stroke="${itemColor}" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="9" stroke="${itemColor}" stroke-width="1.5"/><line x1="7" y1="12" x2="17" y2="12"/></svg></div>`;
         name = esc(h.itemTitle || 'Unknown');
         detail = `${h.barcode ? esc(h.barcode) + ' · ' : ''}${timeAgo(h.ts)} · ${h.qBefore} → ${h.qAfter}`;
         badge = `<div class="hist-delta rem">${h.delta}</div>`;
         break;
       case 'item_add':
-        iconHtml = `<div class="hist-icon new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div>`;
+        iconHtml = `<div class="hist-icon" style="background:rgba(59,130,246,0.14)"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="7" fill="${itemColor}" opacity="0.9"/></svg></div>`;
         name = esc(h.itemTitle || 'Unknown');
         detail = `New item · ${timeAgo(h.ts)}`;
         badge = `<div class="hist-delta new" style="font-size:11px;color:#3b82f6">ADDED</div>`;
         break;
       case 'item_edit':
-        iconHtml = `<div class="hist-icon edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>`;
+        iconHtml = `<div class="hist-icon" style="background:rgba(245,158,11,0.14)"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="7" fill="${itemColor}" opacity="0.9"/></svg></div>`;
         name = esc(h.itemTitle || 'Unknown');
         detail = `Edited · ${timeAgo(h.ts)}`;
         badge = `<div class="hist-delta edit" style="font-size:11px;color:var(--accent)">EDITED</div>`;
         break;
       case 'item_delete':
-        iconHtml = `<div class="hist-icon del"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>`;
+        iconHtml = `<div class="hist-icon" style="background:rgba(239,68,68,0.14)"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="7" fill="${itemColor}" opacity="0.5"/></svg></div>`;
         name = esc(h.itemTitle || 'Unknown');
         detail = `Deleted · ${timeAgo(h.ts)}`;
         badge = `<div class="hist-delta rem" style="font-size:11px">DELETED</div>`;
         break;
       case 'folder_add':
-        iconHtml = `<div class="hist-icon folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg></div>`;
+        iconHtml = `<div class="hist-icon" style="background:rgba(139,92,246,0.14)"><svg viewBox="0 0 24 24" fill="${folderColor}" stroke="${folderColor}" stroke-width="1.5" stroke-linecap="round" opacity="0.9"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>`;
         name = esc(h.folderName || 'Folder');
         detail = `New folder · ${timeAgo(h.ts)}`;
         badge = `<div class="hist-delta" style="font-size:11px;color:#8b5cf6">FOLDER</div>`;
         break;
       case 'folder_edit':
-        iconHtml = `<div class="hist-icon folder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><path d="M15.5 10.5a2.121 2.121 0 0 1 3 3L13 19l-4 1 1-4 5.5-5.5z"/></svg></div>`;
+        iconHtml = `<div class="hist-icon" style="background:rgba(139,92,246,0.14)"><svg viewBox="0 0 24 24" fill="${folderColor}" stroke="${folderColor}" stroke-width="1.5" stroke-linecap="round" opacity="0.9"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>`;
         name = esc(h.folderName || 'Folder');
         detail = `Folder renamed · ${timeAgo(h.ts)}`;
         badge = `<div class="hist-delta" style="font-size:11px;color:#8b5cf6">EDITED</div>`;
         break;
       case 'folder_delete':
-        iconHtml = `<div class="hist-icon del"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="9" y1="13" x2="15" y2="19"/><line x1="15" y1="13" x2="9" y2="19"/></svg></div>`;
+        iconHtml = `<div class="hist-icon" style="background:rgba(239,68,68,0.14)"><svg viewBox="0 0 24 24" fill="${folderColor}" stroke="${folderColor}" stroke-width="1.5" stroke-linecap="round" opacity="0.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div>`;
         name = esc(h.folderName || 'Folder');
         detail = `Folder deleted · ${timeAgo(h.ts)}`;
         badge = `<div class="hist-delta rem" style="font-size:11px">DELETED</div>`;

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="StockScan">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0a0a">
@@ -114,7 +114,7 @@ html,body{
 #qr-reader__status_span,
 #qr-reader__filescan_input,
 #qr-reader img{display:none!important;}
-#qr-shaded-region{border-color:transparent!important;}
+#qr-shaded-region{display:none!important;}
 
 /* Scan overlay */
 .scan-overlay{
@@ -138,7 +138,7 @@ html,body{
 
 /* Corner-bracket frame */
 .scan-frame{
-  width:270px;height:150px;
+  width:260px;height:130px;
   position:relative;
   z-index:1;
 }
@@ -307,14 +307,6 @@ html,body{
 }
 .fpill-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
 
-/* Sub-folder row */
-.subfolder-bar{padding:0 16px 6px;display:none;}
-.subfolder-bar.visible{display:block;}
-.subfolder-scroll{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
-.subfolder-scroll::-webkit-scrollbar{display:none;}
-.fpill.sub{font-size:12px;padding:5px 12px;background:var(--bg1);}
-.fpill.sub.active{background:var(--accent2);border-color:var(--accent);color:var(--accent);}
-
 .items-list{padding:4px 16px 80px;}
 
 .item-row{
@@ -350,7 +342,7 @@ html,body{
 .empty-state p{font-size:14px;color:var(--txt2);line-height:1.5;}
 
 .fab{
-  position:absolute;bottom:16px;right:16px;
+  position:absolute;bottom:calc(var(--tab-h) + 14px + var(--safe-bottom));right:16px;
   width:56px;height:56px;border-radius:28px;
   background:var(--accent);color:#000;border:none;
   cursor:pointer;font-size:26px;font-weight:300;
@@ -540,7 +532,7 @@ html,body{
 </div>
 
 <!-- ══ INVENTORY VIEW ══ -->
-<div id="view-inventory" class="view" style="position:relative">
+<div id="view-inventory" class="view">
   <div class="view-header">
     <div class="view-header-row">
       <div>
@@ -557,13 +549,13 @@ html,body{
   <div class="folders-bar">
     <div class="folders-scroll" id="folders-scroll"></div>
   </div>
-  <div id="subfolder-bar" class="subfolder-bar">
-    <div class="subfolder-scroll" id="subfolder-scroll"></div>
-  </div>
   <div class="scroll">
     <div class="items-list" id="items-list"></div>
+  </div>
   <button class="fab" id="fab-add">+</button>
 </div>
+
+<!-- ══ HISTORY VIEW ══ -->
 <div id="view-history" class="view">
   <div class="view-header">
     <div class="view-header-row">
@@ -687,12 +679,12 @@ html,body{
       </div>
       <div class="fg">
         <label>Quantity</label>
-        <input type="number" class="fi" id="ei-qty" placeholder="0" min="0" inputmode="numeric" onfocus="this.select()">
+        <input type="number" class="fi" id="ei-qty" placeholder="0" min="0" inputmode="numeric">
       </div>
     </div>
     <div class="fg">
       <label>Folder</label>
-      <select class="fi" id="ei-folder-select" style="-webkit-appearance:none;appearance:none;cursor:pointer;"></select>
+      <div class="fchips" id="ei-folder-chips"></div>
     </div>
     <div style="display:flex;gap:10px;margin-top:6px">
       <button class="btn btn-ghost" id="ei-cancel">Cancel</button>
@@ -713,12 +705,6 @@ html,body{
     <div class="fg">
       <label>Folder Name</label>
       <input type="text" class="fi" id="ef-name" placeholder="e.g. Electronics">
-    </div>
-    <div class="fg" id="ef-parent-wrap">
-      <label>Parent Folder</label>
-      <select class="fi" id="ef-parent" style="-webkit-appearance:none;appearance:none;cursor:pointer;">
-        <option value="">None (Root Folder)</option>
-      </select>
     </div>
     <div class="fg">
       <label>Color</label>
@@ -875,12 +861,7 @@ function saveFolder(id, patch) {
   dbSave();
 }
 function removeFolder(id) {
-  const folder = folderById(id);
-  const parentId = folder?.parentId || null;
-  // Reparent any subfolders to this folder's parent (or root)
-  D.folders.forEach(f => { if (f.parentId === id) f.parentId = parentId; });
-  // Move items to parent folder or General
-  D.items.forEach(i => { if (i.folderId === id) i.folderId = parentId || 'f-default'; });
+  D.items.forEach(i => { if (i.folderId === id) i.folderId = 'f-default'; });
   D.folders = D.folders.filter(f => f.id !== id);
   dbSave();
 }
@@ -1029,7 +1010,6 @@ const Scanner = {
   onScan(code) {
     if (!this.acceptScan) return;
     this.acceptScan = false;
-    setTimeout(() => { this.acceptScan = true; }, 3000);
     handleScan(code);
   }
 };
@@ -1133,48 +1113,17 @@ function renderInventory() {
     `${D.items.length} item${D.items.length!==1?'s':''}`;
 }
 
-function countFolderItems(folderId) {
-  const childIds = D.folders.filter(f => f.parentId === folderId).map(f => f.id);
-  return D.items.filter(i => i.folderId === folderId || childIds.includes(i.folderId)).length;
-}
-
 function renderFolderPills() {
   const el = document.getElementById('folders-scroll');
-  const subEl = document.getElementById('subfolder-scroll');
-  const subBar = document.getElementById('subfolder-bar');
-
   const allCount = D.items.length;
-  const roots = D.folders.filter(f => !f.parentId);
-
   let html = `<div class="fpill ${selFolder===null?'active':''}" onclick="pickFolder(null)">All (${allCount})</div>`;
-  roots.forEach(f => {
-    const cnt = countFolderItems(f.id);
+  D.folders.forEach(f => {
+    const cnt = D.items.filter(i => i.folderId === f.id).length;
     html += `<div class="fpill ${selFolder===f.id?'active':''}" onclick="pickFolder('${f.id}')">
       <span class="fpill-dot" style="background:${f.color}"></span>${esc(f.name)} (${cnt})
     </div>`;
   });
   el.innerHTML = html;
-
-  // Determine which root to show subfolders for
-  const activeFolderObj = selFolder ? folderById(selFolder) : null;
-  const activeRootId = activeFolderObj
-    ? (activeFolderObj.parentId || activeFolderObj.id)
-    : null;
-
-  if (activeRootId) {
-    const kids = D.folders.filter(f => f.parentId === activeRootId);
-    if (kids.length) {
-      subEl.innerHTML = kids.map(k => {
-        const cnt = D.items.filter(i => i.folderId === k.id).length;
-        return `<div class="fpill sub ${selFolder===k.id?'active':''}" onclick="pickFolder('${k.id}')">
-          <span class="fpill-dot" style="background:${k.color}"></span>${esc(k.name)} (${cnt})
-        </div>`;
-      }).join('');
-      subBar.classList.add('visible');
-      return;
-    }
-  }
-  subBar.classList.remove('visible');
 }
 
 function pickFolder(id) { selFolder = id; renderInventory(); }
@@ -1182,10 +1131,7 @@ function pickFolder(id) { selFolder = id; renderInventory(); }
 function renderItemList() {
   const q = searchQ.toLowerCase();
   let items = [...D.items];
-  if (selFolder !== null) {
-    const childIds = D.folders.filter(f => f.parentId === selFolder).map(f => f.id);
-    items = items.filter(i => i.folderId === selFolder || childIds.includes(i.folderId));
-  }
+  if (selFolder !== null) items = items.filter(i => i.folderId === selFolder);
   if (q) items = items.filter(i =>
     (i.title||'').toLowerCase().includes(q) ||
     (i.barcode||'').toLowerCase().includes(q)
@@ -1254,23 +1200,26 @@ function openItemModal(itemId, preBC='') {
     document.getElementById('ei-qty').value = 0;
   }
 
-  // Folder select — hierarchical: root folders then their children indented
-  const sel = document.getElementById('ei-folder-select');
-  const roots = D.folders.filter(f => !f.parentId);
-  sel.innerHTML = roots.map(f => {
-    const kids = D.folders.filter(k => k.parentId === f.id);
-    let opts = `<option value="${f.id}" ${f.id===selFolderId?'selected':''}>${f.name}</option>`;
-    kids.forEach(k => {
-      opts += `<option value="${k.id}" ${k.id===selFolderId?'selected':''}>  └ ${k.name}</option>`;
-    });
-    return opts;
-  }).join('');
+  // Folder chips
+  const chips = document.getElementById('ei-folder-chips');
+  chips.innerHTML = D.folders.map(f =>
+    `<div class="fchip ${f.id===selFolderId?'on':''}" data-fid="${f.id}" onclick="pickItemFolder('${f.id}')">
+      <span class="fpill-dot" style="background:${f.color}"></span>${esc(f.name)}
+    </div>`
+  ).join('');
 
   openModal('modal-item');
 }
 
+function pickItemFolder(fid) {
+  document.querySelectorAll('#ei-folder-chips .fchip').forEach(c =>
+    c.classList.toggle('on', c.dataset.fid === fid)
+  );
+}
+
 function getItemFolderSel() {
-  return document.getElementById('ei-folder-select').value || 'f-default';
+  const sel = document.querySelector('#ei-folder-chips .fchip.on');
+  return sel ? sel.dataset.fid : 'f-default';
 }
 
 document.getElementById('ei-save').addEventListener('click', () => {
@@ -1325,14 +1274,6 @@ function openFolderModal(folderId) {
   document.getElementById('ef-id').value = folderId || '';
   document.getElementById('ef-del-wrap').style.display = isEdit ? 'block' : 'none';
 
-  // Populate parent selector — only root folders are valid parents
-  const parentSel = document.getElementById('ef-parent');
-  const editedFolder = isEdit ? folderById(folderId) : null;
-  const currentParentId = editedFolder?.parentId || '';
-  const roots = D.folders.filter(f => !f.parentId && f.id !== folderId);
-  parentSel.innerHTML = `<option value="">None (Root Folder)</option>` +
-    roots.map(f => `<option value="${f.id}" ${currentParentId===f.id?'selected':''}>${f.name}</option>`).join('');
-
   if (isEdit) {
     const f = folderById(folderId);
     if (!f) return;
@@ -1349,7 +1290,7 @@ function openFolderModal(folderId) {
 
 function renderColorGrid() {
   document.getElementById('ef-colors').innerHTML = COLORS.map(c =>
-    `<div class="cswatch ${c===_folderColor?'on':''}" style="background:${c}" data-color="${c}"
+    `<div class="cswatch ${c===_folderColor?'on':''}" style="background:${c}"
           onclick="pickColor('${c}')"></div>`
   ).join('');
 }
@@ -1357,7 +1298,7 @@ function renderColorGrid() {
 function pickColor(c) {
   _folderColor = c;
   document.querySelectorAll('.cswatch').forEach(el =>
-    el.classList.toggle('on', el.dataset.color === c)
+    el.classList.toggle('on', el.style.background === c)
   );
 }
 
@@ -1365,13 +1306,11 @@ document.getElementById('ef-save').addEventListener('click', () => {
   const name = document.getElementById('ef-name').value.trim();
   if (!name) { toast('Folder name required', 'err'); return; }
 
-  const parentId = document.getElementById('ef-parent').value || null;
-
   if (_editFolderId) {
-    saveFolder(_editFolderId, {name, color:_folderColor, parentId});
+    saveFolder(_editFolderId, {name, color:_folderColor});
     toast('Folder updated', 'ok');
   } else {
-    addFolder({id:uid(), name, color:_folderColor, parentId});
+    addFolder({id:uid(), name, color:_folderColor});
     toast('Folder created', 'ok');
   }
   closeModal('modal-folder');

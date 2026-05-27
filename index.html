@@ -1799,7 +1799,7 @@ document.getElementById('btn-clear-hist').addEventListener('click', () => {
 function renderSettings() {
   document.getElementById('sheets-url').value = D.settings.sheetsUrl || '';
   document.getElementById('last-sync-lbl').textContent = D.settings.lastSync
-    ? timeAgo(D.settings.lastSync) : 'Never synced';
+    ? 'Sent ' + timeAgo(D.settings.lastSync) : 'Never sent';
   document.getElementById('storage-lbl').textContent = dbSize();
   document.getElementById('stats-lbl').textContent =
     `${D.items.length} items / ${D.folders.length} folders`;
@@ -1813,7 +1813,7 @@ document.getElementById('sheets-url').addEventListener('input', e => {
 document.getElementById('btn-sync').addEventListener('click', async () => {
   const url = D.settings.sheetsUrl;
   if (!url) { toast('Enter your Apps Script URL first', 'err'); return; }
-  toast('Syncing…');
+  toast('Sending to Sheets…');
   try {
     await fetch(url, {
       method:'POST', mode:'no-cors',
@@ -1824,11 +1824,16 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
         sheetId: ''
       })
     });
+    // Note: mode:'no-cors' returns an opaque response — we can confirm the
+    // request was dispatched but cannot read the server's status or body.
+    // If the Apps Script URL or Sheet ID is wrong the request will still
+    // appear to succeed here; verify in your Google Sheet after syncing.
     D.settings.lastSync = Date.now(); dbSave();
     renderSettings();
-    toast('Synced to Google Sheets ✓', 'ok');
+    toast('Request sent — verify in your Sheet', 'ok');
   } catch(e) {
-    toast('Sync failed — check URL', 'err');
+    // Only network-level failures (no connection, DNS) are catchable here.
+    toast('Network error — request not sent', 'err');
   }
 });
 
@@ -1857,9 +1862,9 @@ document.getElementById('btn-export-csv').addEventListener('click', () => {
   D.items.forEach(item => {
     const f = folderById(item.folderId);
     rows.push([
-      item.barcode||'',
+      csvCell(item.barcode||''),
       csvCell(item.title||''),
-      f?.name||'General',
+      csvCell(f?.name||'General'),
       item.price||0,
       item.quantity||0,
       item.updatedAt ? new Date(item.updatedAt).toISOString() : ''
@@ -1883,15 +1888,29 @@ document.getElementById('import-file').addEventListener('change', e => {
   r.onload = ev => {
     try {
       const imp = JSON.parse(ev.target.result);
-      if (!imp.items || !imp.folders) throw new Error('Bad format');
-      if (!confirm(`Import ${imp.items.length} items and ${imp.folders.length} folders?\nThis replaces all current data.`)) return;
+      // Validate top-level shape
+      if (!Array.isArray(imp.items) || !Array.isArray(imp.folders)) {
+        throw new Error('Missing or invalid items/folders arrays');
+      }
+      // Validate each item has at minimum an id
+      const badItem = imp.items.find(x => !x || typeof x !== 'object' || !x.id);
+      if (badItem !== undefined) throw new Error('One or more items are missing an id');
+      // Validate each folder has id and name
+      const badFolder = imp.folders.find(x => !x || typeof x !== 'object' || !x.id || !x.name);
+      if (badFolder !== undefined) throw new Error('One or more folders are missing id or name');
+      if (!confirm(`Import ${imp.items.length} items and ${imp.folders.length} folders?\nYour current data will be auto-saved as a backup file first, then replaced.`)) return;
+      // Auto-backup current data before overwriting
+      if (D.items.length > 0 || D.folders.length > 1) {
+        const backupBlob = new Blob([JSON.stringify(D, null, 2)], {type:'application/json'});
+        dlBlob(backupBlob, `stockscan-pre-import-backup-${today()}.json`);
+      }
       D = imp;
       if (!D.settings) D.settings = {sheetsUrl:'', lastSync:null};
       dbSave();
       renderSettings();
       toast(`Imported ${imp.items.length} items`, 'ok');
     } catch(err) {
-      toast('Import failed — invalid file', 'err');
+      toast('Import failed — ' + (err.message || 'invalid file'), 'err');
     }
     e.target.value = '';
   };

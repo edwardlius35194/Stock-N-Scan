@@ -1838,6 +1838,10 @@ function fbInit() {
 
               D.updatedAt = data.updatedAt;
               dbSave(true); // Save locally without pushing back up
+              // Push merged history back so remote is also up to date
+              if (currentUser && _fbDb) {
+                _fbDb.ref(`users/${currentUser.uid}/stockscan/history`).set(merged);
+              }
               
               if (document.getElementById('view-inventory').classList.contains('active')) renderInventory();
               if (document.getElementById('view-history').classList.contains('active')) renderHistory();

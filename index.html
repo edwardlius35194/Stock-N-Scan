@@ -1391,8 +1391,8 @@ function renderItemList() {
   } else if (selFolder !== null) {
     items = items.filter(i => i.folderId === selFolder);
   } else {
-    // root view: only show items not assigned to any named folder
-    items = items.filter(i => i.folderId === 'f-default');
+    // root view: no items shown, navigate into a folder to see them
+    items = [];
   }
 
   items.sort((a,b) => (a.title||'').localeCompare(b.title||''));

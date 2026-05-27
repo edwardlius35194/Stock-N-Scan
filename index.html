@@ -648,10 +648,8 @@ html,body{
 <body>
 <div id="app">
 
-<!-- ══ SCAN VIEW ══ -->
 <div id="view-scan" class="view active">
   <div id="scanner-wrap">
-    <!-- html5-qrcode injects #qr-reader here -->
     <div class="cam-placeholder" id="cam-placeholder">
       <div class="cam-icon">📷</div>
       <div class="cam-title">Camera Access</div>
@@ -673,7 +671,6 @@ html,body{
   </div>
 </div>
 
-<!-- ══ INVENTORY VIEW ══ -->
 <div id="view-inventory" class="view">
   <div class="view-header">
     <div class="view-header-row">
@@ -695,7 +692,6 @@ html,body{
   <button class="fab" id="fab-add">+</button>
 </div>
 
-<!-- ══ HISTORY VIEW ══ -->
 <div id="view-history" class="view">
   <div class="view-header">
     <div class="view-header-row">
@@ -711,7 +707,6 @@ html,body{
   </div>
 </div>
 
-<!-- ══ SETTINGS VIEW ══ -->
 <div id="view-settings" class="view">
   <div class="view-header">
     <div class="view-title">Settings</div>
@@ -737,38 +732,35 @@ html,body{
         </div>
         <div class="set-label">Setup Instructions</div>
         <div class="set-chevron">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
     </div>
 
     <div class="set-section">
-      <div class="set-head">Data</div>
+      <div class="set-head">Data & Export</div>
       <div class="set-row" id="btn-export-json">
-        <div class="set-ico" style="background:rgba(245,158,11,0.12)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <div class="set-ico" style="background:rgba(59,130,246,0.12)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
-        <div class="set-label">Export Full Backup</div>
-        <div class="set-val">JSON</div>
+        <div class="set-label">Backup Data (JSON)</div>
       </div>
       <div class="set-row" id="btn-export-csv">
+        <div class="set-ico" style="background:rgba(168,85,247,0.12)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </div>
+        <div class="set-label">Export to Excel (CSV)</div>
+      </div>
+      <label class="set-row" id="btn-import">
         <div class="set-ico" style="background:rgba(245,158,11,0.12)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         </div>
-        <div class="set-label">Export Inventory</div>
-        <div class="set-val">CSV</div>
-      </div>
-      <div class="set-row" id="btn-import">
-        <div class="set-ico" style="background:rgba(59,130,246,0.12)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        </div>
-        <div class="set-label">Import from Backup</div>
-        <div class="set-val">JSON</div>
-      </div>
-      <input type="file" id="import-file" accept=".json" style="display:none">
+        <div class="set-label">Restore Data (JSON)</div>
+        <input type="file" id="import-file" accept=".json" style="display:none">
+      </label>
       <div class="set-row" id="btn-clear-all">
         <div class="set-ico" style="background:rgba(239,68,68,0.12)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
         </div>
         <div class="set-label" style="color:var(--red)">Clear All Data</div>
       </div>
@@ -790,46 +782,36 @@ html,body{
         <div class="set-label">Storage Used</div>
         <div class="set-val" id="storage-lbl">—</div>
       </div>
-      <div class="set-row" style="cursor:default">
-        <div class="set-ico" style="background:var(--bg2)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--txt2)" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4M6 8h5M6 12h3"/></svg>
-        </div>
-        <div class="set-label">Items / Folders</div>
-        <div class="set-val" id="stats-lbl">—</div>
-      </div>
     </div>
 
   </div>
 </div>
 
-<!-- ══ TAB BAR ══ -->
 <nav class="tabbar">
   <button class="tab active" data-tab="scan">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="9" width="2" height="6" rx="1"/><rect x="11" y="9" width="1" height="6" rx=".5"/><rect x="14" y="9" width="3" height="6" rx="1"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
     Scan
   </button>
   <button class="tab" data-tab="inventory">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4M6 8h5M6 12h3"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
     Inventory
   </button>
   <button class="tab" data-tab="history">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 8v4l3 3"/><circle cx="12" cy="12" r="9"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
     History
   </button>
   <button class="tab" data-tab="settings">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
     Settings
   </button>
 </nav>
 
-</div><!-- #app -->
-
-<!-- ══ MODAL: ADD/EDIT ITEM ══ -->
-<div class="modal-back" id="modal-item">
+</div><div class="modal-back" id="modal-item">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-item-title">Add Item</div>
     <input type="hidden" id="ei-id">
+    
     <div class="fg">
       <label>Barcode</label>
       <div class="barcode-wrap">
@@ -843,6 +825,7 @@ html,body{
       <label>Title</label>
       <input type="text" class="fi" id="ei-title" placeholder="Product name">
     </div>
+    
     <div class="fi-row">
       <div class="fg">
         <label>Price ($)</label>
@@ -850,18 +833,20 @@ html,body{
       </div>
       <div class="fg">
         <label>Quantity</label>
-        <input type="number" class="fi" id="ei-qty" placeholder="0" min="0" inputmode="numeric">
+        <input type="number" class="fi" id="ei-qty" placeholder="0" min="0" step="1" inputmode="numeric" onfocus="this.select()">
       </div>
     </div>
+
     <div class="fg">
       <label>Folder</label>
-      <div class="folder-pick-btn" id="ei-folder-btn" onclick="openFolderPicker()">
-        <span class="folder-pick-dot" id="ei-folder-dot"></span>
+      <div class="folder-pick-btn" onclick="openFolderPicker()">
+        <span class="folder-pick-dot" id="ei-folder-dot" style="background:#f59e0b"></span>
         <span class="folder-pick-name" id="ei-folder-name">General</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--txt3)"><path d="M9 18l6-6-6-6"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
     </div>
-    <div style="display:flex;gap:10px;margin-top:6px">
+    
+    <div style="display:flex;gap:10px;margin-top:24px">
       <button class="btn btn-ghost" id="ei-cancel">Cancel</button>
       <button class="btn btn-primary" id="ei-save">Save Item</button>
     </div>
@@ -871,57 +856,55 @@ html,body{
   </div>
 </div>
 
-<!-- ══ FOLDER PICKER POPUP ══ -->
 <div class="modal-back" id="modal-folder-picker">
-  <div class="modal" style="padding-bottom:calc(16px + var(--safe-bottom))">
+  <div class="modal" style="height:80vh;display:flex;flex-direction:column">
     <div class="modal-handle"></div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <button id="fp-back-btn" onclick="folderPickerBack()" style="background:none;border:none;color:var(--accent);font-size:14px;font-weight:600;cursor:pointer;padding:0;display:none;align-items:center;gap:3px">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        Back
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <button id="fp-back-btn" style="background:var(--bg2);border:none;width:32px;height:32px;border-radius:16px;display:none;align-items:center;justify-content:center;cursor:pointer;color:var(--txt)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <div class="modal-title" id="fp-title" style="margin-bottom:0;flex:1">Select Folder</div>
-      <button onclick="closeModal('modal-folder-picker')" style="background:none;border:none;color:var(--txt3);font-size:22px;line-height:1;cursor:pointer;padding:0">×</button>
+      <div class="modal-title" id="fp-title" style="margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Select Folder</div>
+      <button style="background:none;border:none;color:var(--txt3);font-weight:600;font-size:14px;cursor:pointer" onclick="closeModal('modal-folder-picker')">Done</button>
     </div>
-    <div id="fp-list" style="display:flex;flex-direction:column;gap:6px;max-height:55vh;overflow-y:auto"></div>
+    <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:6px" id="fp-list">
+      </div>
   </div>
 </div>
 
-<!-- ══ SCAN POPUP (from Add Item barcode button) ══ -->
 <div class="scan-popup" id="scan-popup">
+  <button class="scan-popup-close" onclick="modalScannerToggle()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    Close
+  </button>
+  <div class="scan-popup-label">Scan Barcode</div>
   <div class="scan-popup-cam">
     <div id="qr-modal"></div>
-    <div class="scan-popup-label">Scan Barcode</div>
-    <button class="scan-popup-close" onclick="modalScannerStop()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      Close
-    </button>
     <div class="scan-overlay">
-      <div class="scan-bg-shade"></div>
-      <div class="scan-frame">
-        <span></span>
-        <div class="scan-line"></div>
+      <div class="scan-frame" style="width:220px;height:100px">
+        <span></span><div class="scan-line"></div>
       </div>
-      <p class="scan-hint">Point at barcode to scan</p>
+      <p class="scan-hint" style="color:#fff;text-shadow:0 1px 4px rgba(0,0,0,0.8)">Hold barcode here</p>
     </div>
   </div>
 </div>
 
-<!-- ══ MODAL: ADD/EDIT FOLDER ══ -->
 <div class="modal-back" id="modal-folder">
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="modal-folder-title">Add Folder</div>
     <input type="hidden" id="ef-id">
+    
     <div class="fg">
       <label>Folder Name</label>
-      <input type="text" class="fi" id="ef-name" placeholder="e.g. Electronics">
+      <input type="text" class="fi" id="ef-name" placeholder="e.g. Back Room">
     </div>
-    <div class="fg">
+    
+    <div class="fg" style="margin-top:20px">
       <label>Color</label>
       <div class="cswatch-grid" id="ef-colors"></div>
     </div>
-    <div style="display:flex;gap:10px;margin-top:6px">
+    
+    <div style="display:flex;gap:10px;margin-top:24px">
       <button class="btn btn-ghost" id="ef-cancel">Cancel</button>
       <button class="btn btn-primary" id="ef-save">Save Folder</button>
     </div>
@@ -931,7 +914,6 @@ html,body{
   </div>
 </div>
 
-<!-- ══ MODAL: SHEETS HELP ══ -->
 <div class="modal-back" id="modal-sheets-help">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -947,132 +929,178 @@ html,body{
       <li>Type: <strong style="color:var(--txt)">Web app</strong> · Execute as: <strong style="color:var(--txt)">Me</strong> · Access: <strong style="color:var(--txt)">Anyone</strong></li>
       <li>Copy the Web app URL and paste it into Settings above</li>
     </ol>
-    <div id="script-code-box" style="margin-top:14px;background:var(--bg2);border-radius:10px;padding:12px;font-family:monospace;font-size:11.5px;color:#d4d4d4;white-space:pre-wrap;word-break:break-all;border:1px solid var(--border);max-height:180px;overflow-y:auto;line-height:1.5"></div>
-    <button class="btn btn-ghost" id="btn-copy-script" style="margin-top:10px;font-size:14px">Copy Script</button>
-    <button class="btn btn-primary" id="btn-sheets-help-close" style="margin-top:10px">Done</button>
+    <div id="script-code-box" style="margin-top:14px;background:var(--bg2);border-radius:10px;padding:12px;font-family:monospace;font-size:11.5px;color:#d4d4d4;white-space:pre-wrap;word-break:break-all;border:1px solid rgba(255,255,255,0.05);max-height:180px;overflow-y:auto"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-ghost" id="btn-sheets-help-close">Close</button>
+      <button class="btn btn-primary" id="btn-copy-script">Copy Script</button>
+    </div>
   </div>
 </div>
 
-<!-- ══ TOAST ══ -->
-<div class="toast" id="toast"></div>
+<div id="toast" class="toast">Message</div>
 
 <script>
 // ═══════════════════════════════════════
-// CONSTANTS
+// CONSTANTS & APPS SCRIPT
 // ═══════════════════════════════════════
-
-const COLORS = [
-  '#f59e0b','#ef4444','#22c55e','#3b82f6',
-  '#8b5cf6','#ec4899','#14b8a6','#f97316',
-  '#6366f1','#84cc16','#a3a3a3','#fbbf24'
-];
-
-const APPS_SCRIPT = `// Stock N' Scan → Google Sheets sync
-// Replace YOUR_SHEET_ID with your spreadsheet ID
-const SHEET_ID = 'YOUR_SHEET_ID';
+const COLORS = ['#f59e0b','#ef4444','#22c55e','#3b82f6','#a855f7','#ec4899','#14b8a6','#8b5cf6'];
+const APPS_SCRIPT = `// Apps Script for Stock N' Scan
+const SHEET_ID = 'YOUR_SHEET_ID_HERE'; // <-- REPLACE THIS
 
 function doPost(e) {
   try {
-    var d = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.openById(d.sheetId || SHEET_ID);
-    var sheet = ss.getSheets()[0];
-    sheet.clearContents();
-    sheet.appendRow(['Barcode','Title','Folder','Price ($)','Quantity','Last Updated']);
-    sheet.getRange(1,1,1,6).setFontWeight('bold')
-      .setBackground(null).setFontColor('#b45309');
-    (d.items || []).forEach(function(item) {
-      var folder = (d.folders || []).find(function(f){ return f.id === item.folderId; });
-      sheet.appendRow([
-        item.barcode || '',
-        item.title || '',
-        folder ? folder.name : 'General',
-        parseFloat(item.price) || 0,
-        parseInt(item.quantity) || 0,
-        item.updatedAt ? new Date(item.updatedAt).toLocaleString() : ''
-      ]);
-    });
-    sheet.autoResizeColumns(1, 6);
-    return ContentService
-      .createTextOutput(JSON.stringify({ok:true,count:(d.items||[]).length}))
+    const data = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    let sheet = ss.getSheetByName('Inventory');
+    
+    // Create sheet if missing
+    if (!sheet) {
+      sheet = ss.insertSheet('Inventory');
+      sheet.appendRow(['ID', 'Barcode', 'Title', 'Folder', 'Price', 'Quantity', 'Last Updated']);
+      sheet.getRange("A1:G1").setFontWeight("bold");
+      sheet.setFrozenRows(1);
+    }
+    
+    // Clear old data
+    const lastRow = sheet.getLastRow();
+    if (lastRow > 1) {
+      sheet.getRange(2, 1, lastRow - 1, 7).clearContent();
+    }
+    
+    // Prepare map of folder IDs to names
+    const folderMap = {};
+    if (data.folders) {
+      data.folders.forEach(f => {
+        folderMap[f.id] = f.name;
+      });
+    }
+    
+    // Write rows
+    if (data.items && data.items.length > 0) {
+      const rows = data.items.map(item => {
+        return [
+          item.id || '',
+          item.barcode || '',
+          item.title || '',
+          folderMap[item.folderId] || 'General',
+          item.price || 0,
+          item.quantity || 0,
+          item.updatedAt ? new Date(item.updatedAt).toLocaleString() : ''
+        ];
+      });
+      sheet.getRange(2, 1, rows.length, 7).setValues(rows);
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({success:true, count: data.items ? data.items.length : 0}))
       .setMimeType(ContentService.MimeType.JSON);
+      
   } catch(err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ok:false,error:err.message}))
+    return ContentService.createTextOutput(JSON.stringify({success:false, error: err.toString()}))
       .setMimeType(ContentService.MimeType.JSON);
   }
 }`;
 
-// ═══════════════════════════════════════
-// DATA LAYER
-// ═══════════════════════════════════════
+document.getElementById('script-code-box').textContent = APPS_SCRIPT;
 
-const DB_KEY = 'stockscan-v1';
+// ═══════════════════════════════════════
+// DATABASE (Local Storage)
+// ═══════════════════════════════════════
+let D = {
+  folders: [{id:'f-default', name:'General', color:'#f59e0b'}],
+  items: [],
+  history: [],
+  settings: { sheetsUrl: '', lastSync: 0 }
+};
 
 function dbLoad() {
   try {
-    const s = localStorage.getItem(DB_KEY);
-    if (s) return JSON.parse(s);
-  } catch(e) {}
-  return {
-    folders: [{id:'f-default',name:'General',color:'#f59e0b'}],
-    items: [],
-    history: [],
-    settings: {sheetsUrl:'',lastSync:null}
-  };
+    const s = localStorage.getItem('stockscan_db');
+    if (s) {
+      const parsed = JSON.parse(s);
+      D.folders = parsed.folders || [{id:'f-default', name:'General', color:'#f59e0b'}];
+      D.items = parsed.items || [];
+      D.history = parsed.history || [];
+      D.settings = parsed.settings || { sheetsUrl: '', lastSync: 0 };
+    }
+  } catch(e) { console.error('DB Load Error', e); }
 }
-
-let D = dbLoad();
 
 function dbSave() {
-  try { localStorage.setItem(DB_KEY, JSON.stringify(D)); } catch(e) {}
+  try {
+    localStorage.setItem('stockscan_db', JSON.stringify(D));
+  } catch(e) { console.error('DB Save Error', e); }
 }
 
-function dbSize() {
-  const s = localStorage.getItem(DB_KEY) || '';
-  const kb = (s.length * 2 / 1024);
-  return kb < 1 ? '<1 KB' : kb.toFixed(1) + ' KB';
+function pushHistory(entry) {
+  entry.ts = Date.now();
+  D.history.unshift(entry);
+  if (D.history.length > 200) D.history.length = 200; // Limit
+  dbSave();
+  if (currentTab === 'history') renderHistory();
 }
 
-// CRUD helpers
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function genId(prefix='i') {
+  return prefix + '-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+}
 
-function itemByBarcode(bc) { return D.items.find(i => i.barcode === bc); }
-function itemById(id) { return D.items.find(i => i.id === id); }
-function folderById(id) { return D.folders.find(f => f.id === id); }
-
+function itemByBarcode(bc) {
+  return D.items.find(i => i.barcode === bc);
+}
+function itemById(id) {
+  return D.items.find(i => i.id === id);
+}
+function folderById(id) {
+  return D.folders.find(f => f.id === id);
+}
 function childFolders(parentId) {
   return D.folders.filter(f => (f.parentId || null) === (parentId || null));
 }
+
+// FIX: Infinite Loop Cycle Detection
 function folderPath(id) {
   const path = [];
   let cur = folderById(id);
-  while (cur) {
+  const visited = new Set();
+  while (cur && !visited.has(cur.id)) {
+    visited.add(cur.id);
     path.unshift(cur);
     cur = cur.parentId ? folderById(cur.parentId) : null;
   }
   return path;
 }
+
+// FIX: Infinite Loop Cycle Detection
 function allDescendantIds(id) {
   const result = [];
   const stack = [id];
+  const visited = new Set([id]);
   while (stack.length) {
     const cur = stack.pop();
     D.folders.filter(f => f.parentId === cur).forEach(c => {
-      result.push(c.id); stack.push(c.id);
+      if (!visited.has(c.id)) {
+        visited.add(c.id);
+        result.push(c.id);
+        stack.push(c.id);
+      }
     });
   }
   return result;
 }
 
-function addItem(item) { D.items.push(item); dbSave(); }
+function addItem(item) {
+  D.items.push(item);
+  dbSave();
+}
 function saveItem(id, patch) {
   const idx = D.items.findIndex(i => i.id === id);
   if (idx < 0) return;
   D.items[idx] = {...D.items[idx], ...patch, updatedAt: Date.now()};
   dbSave();
 }
-function removeItem(id) { D.items = D.items.filter(i => i.id !== id); dbSave(); }
-
+function removeItem(id) {
+  D.items = D.items.filter(i => i.id !== id);
+  dbSave();
+}
 function adjustQty(id, delta) {
   const item = D.items.find(i => i.id === id);
   if (!item) return null;
@@ -1081,56 +1109,47 @@ function adjustQty(id, delta) {
   item.updatedAt = Date.now();
   pushHistory({
     itemId: id, itemTitle: item.title, barcode: item.barcode,
-    action: delta >= 0 ? 'add' : 'rem',
-    delta, qBefore: before, qAfter: item.quantity
+    action: delta >= 0 ? 'add' : 'rem', delta, qBefore: before, qAfter: item.quantity
   });
   dbSave();
   return item;
 }
 
-function addFolder(f) { D.folders.push(f); dbSave(); }
+function addFolder(f) {
+  D.folders.push(f);
+  dbSave();
+}
 function saveFolder(id, patch) {
   const idx = D.folders.findIndex(f => f.id === id);
-  if (idx < 0) return;
-  D.folders[idx] = {...D.folders[idx], ...patch};
-  dbSave();
+  if (idx > -1) {
+    D.folders[idx] = {...D.folders[idx], ...patch};
+    dbSave();
+  }
 }
 function removeFolder(id) {
-  const toRemove = [id, ...allDescendantIds(id)];
-  D.items.forEach(i => { if (toRemove.includes(i.folderId)) i.folderId = 'f-default'; });
-  D.folders = D.folders.filter(f => !toRemove.includes(f.id));
+  // Collect the deleted folder AND all its descendants
+  const toDelete = new Set([id, ...allDescendantIds(id)]);
+  // Reassign all affected items to f-default
+  D.items.forEach(i => {
+    if (toDelete.has(i.folderId)) i.folderId = 'f-default';
+  });
+  // Remove all deleted folders in one pass
+  D.folders = D.folders.filter(f => !toDelete.has(f.id));
   dbSave();
 }
 
-function pushHistory(e) {
-  D.history.unshift({id: uid(), ...e, ts: Date.now()});
-  if (D.history.length > 600) D.history = D.history.slice(0, 600);
-}
-
 // ═══════════════════════════════════════
-// UTILITIES
+// UTILS
 // ═══════════════════════════════════════
-
-function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function fmtPrice(p) {
-  return '$' + parseFloat(p||0).toFixed(2);
-}
-
-function timeAgo(ts) {
-  if (!ts) return '—';
-  const d = Date.now() - ts;
-  if (d < 60e3) return 'Just now';
-  if (d < 3600e3) return Math.floor(d/60e3) + 'm ago';
-  if (d < 86400e3) return Math.floor(d/3600e3) + 'h ago';
-  if (d < 7*86400e3) return Math.floor(d/86400e3) + 'd ago';
-  return new Date(ts).toLocaleDateString();
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>'"]/g, tag => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  }[tag]));
 }
 
 let _toastTimer;
-function toast(msg, type='') {
+function toast(msg, type='ok') {
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.className = `toast show ${type}`;
@@ -1141,43 +1160,41 @@ function toast(msg, type='') {
 // ═══════════════════════════════════════
 // NAVIGATION
 // ═══════════════════════════════════════
-
 let currentTab = 'scan';
-
 function gotoTab(tab) {
   if (currentTab === 'scan' && tab !== 'scan') Scanner.stop();
   if (tab === 'scan' && currentTab !== 'scan') setTimeout(() => Scanner.start(), 80);
-
+  
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  
   document.getElementById('view-' + tab).classList.add('active');
   document.querySelector(`.tab[data-tab="${tab}"]`).classList.add('active');
   currentTab = tab;
-
+  
   if (tab === 'inventory') renderInventory();
   if (tab === 'history') renderHistory();
   if (tab === 'settings') renderSettings();
 }
 
-document.querySelectorAll('.tab').forEach(t =>
+document.querySelectorAll('.tab').forEach(t => 
   t.addEventListener('click', () => gotoTab(t.dataset.tab))
 );
 
 // ═══════════════════════════════════════
 // SCANNER
 // ═══════════════════════════════════════
-
 const Scanner = {
   inst: null,
   running: false,
   acceptScan: true,
-
+  
   async start() {
     if (this.running) return;
-
+    
     // Hide placeholder
     document.getElementById('cam-placeholder').style.display = 'none';
-
+    
     // Create or reuse #qr-reader
     const wrap = document.getElementById('scanner-wrap');
     if (!document.getElementById('qr-reader')) {
@@ -1185,7 +1202,7 @@ const Scanner = {
       d.id = 'qr-reader';
       wrap.insertBefore(d, wrap.firstChild);
     }
-
+    
     let formats;
     try {
       formats = [
@@ -1201,87 +1218,70 @@ const Scanner = {
         Html5QrcodeSupportedFormats.DATA_MATRIX,
       ];
     } catch(e) { formats = undefined; }
-
+    
     const cfg = {fps:10, qrbox:{width:260,height:130}};
     if (formats) cfg.formatsToSupport = formats;
-
-    this.inst = new Html5Qrcode('qr-reader', {verbose:false});
-
+    
+    this.inst = new Html5Qrcode("qr-reader");
     try {
       await this.inst.start(
-        {facingMode:'environment'}, cfg,
-        code => this.onScan(code),
-        () => {}
+        { facingMode: "environment" },
+        cfg,
+        (text) => this.onScanSuccess(text)
       );
       this.running = true;
-      this.acceptScan = true;
-      this._fixStyles();
-    } catch(err) {
+      document.getElementById('scan-overlay').style.opacity = '1';
+    } catch(e) {
+      console.warn(e);
       document.getElementById('cam-placeholder').style.display = 'flex';
-      const qrEl = document.getElementById('qr-reader');
-      if (qrEl) qrEl.remove();
-      this.inst = null;
+      document.getElementById('scan-overlay').style.opacity = '0';
     }
   },
-
-  _fixStyles() {
-    ['qr-reader__dashboard','qr-reader__header_message','qr-reader__status_span']
-      .forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
-    const v = document.querySelector('#qr-reader video');
-    if (v) Object.assign(v.style, {width:'100%',height:'100%',objectFit:'cover'});
-    // Re-check after 1s (lib may rerender)
-    setTimeout(() => {
-      ['qr-reader__dashboard','qr-reader__header_message']
-        .forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
-    }, 1000);
+  
+  stop() {
+    if (this.inst && this.running) {
+      this.inst.stop().catch(console.warn);
+      this.inst = null;
+      this.running = false;
+      document.getElementById('scan-overlay').style.opacity = '0';
+    }
   },
-
-  async stop() {
-    if (!this.running || !this.inst) return;
-    try { await this.inst.stop(); } catch(e) {}
-    this.running = false;
-    this.inst = null;
-  },
-
-  onScan(code) {
+  
+  onScanSuccess(decodedText) {
     if (!this.acceptScan) return;
+    if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(50);
     this.acceptScan = false;
-    handleScan(code);
+    openScanSheet(decodedText);
   }
 };
 
 // ═══════════════════════════════════════
-// SCAN RESULT
+// SCAN SHEET LOGIC
 // ═══════════════════════════════════════
-
 let _scanBarcode = null;
 let _scanDelta = 1;
 
-function handleScan(barcode) {
+function openScanSheet(barcode) {
   _scanBarcode = barcode;
   _scanDelta = 1;
   const item = itemByBarcode(barcode);
   const content = document.getElementById('scan-sheet-content');
-
+  
   if (item) {
-    const folder = folderById(item.folderId);
+    const f = folderById(item.folderId);
     content.innerHTML = `
-      <div class="scan-barcode-label">${esc(barcode)}</div>
+      <div class="scan-barcode-label">${esc(item.barcode)}</div>
       <div class="scan-item-name">${esc(item.title)}</div>
       <div class="scan-item-meta">
-        <span class="meta-dot" style="background:${folder?.color||'#888'}"></span>
-        <span>${esc(folder?.name||'General')}</span>
-        <span>·</span>
-        <span>${fmtPrice(item.price)}</span>
-        <span>·</span>
-        <span>In stock: <strong>${item.quantity||0}</strong></span>
+        <span class="meta-dot" style="background:${f?.color||'#888'}"></span>
+        <span>${esc(f?.name || 'General')}</span>
+        <span style="color:var(--border)">|</span>
+        <span style="color:var(--txt)">${item.quantity} in stock</span>
       </div>
       <div class="qty-bar">
         <button class="qty-side-btn minus" onclick="sheetDelta(-1)">−</button>
         <div class="qty-val">
-          <input type="number" id="delta-inp" value="1" min="1" max="9999"
-                 onchange="_scanDelta=Math.max(1,parseInt(this.value)||1);this.value=_scanDelta"
-                 inputmode="numeric">
+          <input type="number" id="delta-inp" value="1" min="1" step="1" inputmode="numeric">
           <div class="qty-val-label">UNITS</div>
         </div>
         <button class="qty-side-btn plus" onclick="sheetDelta(1)">+</button>
@@ -1300,15 +1300,14 @@ function handleScan(barcode) {
       </div>
       <div class="sheet-btns">
         <button class="btn btn-ghost" onclick="closeSheet()">Cancel</button>
-        <button class="btn btn-primary" onclick="openFromScan('${esc(barcode)}')">Add to Inventory</button>
+        <button class="btn btn-primary" id="btn-add-to-inv" data-barcode="${esc(barcode)}">Add to Inventory</button>
       </div>`;
   }
-
   document.getElementById('scan-sheet').classList.add('up');
 }
 
 function sheetDelta(dir) {
-  _scanDelta = Math.max(1, _scanDelta + dir);
+  _scanDelta = Math.min(9999, Math.max(1, _scanDelta + dir));
   const inp = document.getElementById('delta-inp');
   if (inp) inp.value = _scanDelta;
 }
@@ -1317,6 +1316,11 @@ function doAdjust(sign) {
   if (!_scanBarcode) return;
   const item = itemByBarcode(_scanBarcode);
   if (!item) return;
+  
+  // Read typed value from input field, not just button-driven _scanDelta
+  const inp = document.getElementById('delta-inp');
+  if (inp) _scanDelta = Math.max(1, parseInt(inp.value) || 1);
+  
   const delta = sign * _scanDelta;
   adjustQty(item.id, delta);
   toast(delta > 0 ? `+${delta} to ${item.title}` : `${delta} from ${item.title}`, delta > 0 ? 'ok' : '');
@@ -1335,72 +1339,41 @@ function closeSheet() {
   Scanner.acceptScan = true;
 }
 
-// ═══════════════════════════════════════
-// INVENTORY VIEW
-// ═══════════════════════════════════════
+// Delegated listener for "Add to Inventory" in the scan sheet
+document.addEventListener('click', (e) => {
+  if (e.target && e.target.id === 'btn-add-to-inv') {
+    const bc = e.target.getAttribute('data-barcode');
+    openFromScan(bc);
+  }
+});
 
-let selFolder = null;
+// ═══════════════════════════════════════
+// INVENTORY LOGIC
+// ═══════════════════════════════════════
+let selFolder = null; // null = root
 let searchQ = '';
 
 function renderInventory() {
-  renderFolderPills();
-  renderItemList();
-  document.getElementById('inv-sub').textContent =
-    `${D.items.length} item${D.items.length!==1?'s':''}`;
-}
-
-function renderFolderPills() {
-  const crumb = document.getElementById('folder-crumb');
-
+  document.getElementById('inv-sub').textContent = `${D.items.length} total items`;
+  
+  // Breadcrumbs
+  const crumbEl = document.getElementById('folder-crumb');
   if (selFolder) {
     const path = folderPath(selFolder);
-    const cur = folderById(selFolder);
-    crumb.innerHTML =
-      `<span class="crumb-item" onclick="pickFolder(null)">All</span>` +
-      path.map((f, i) =>
-        `<span class="crumb-sep">›</span>` +
-        (i < path.length - 1
-          ? `<span class="crumb-item" onclick="pickFolder('${f.id}')">${esc(f.name)}</span>`
-          : `<span class="crumb-item cur">${esc(f.name)}</span>`)
-      ).join('');
+    let html = `<div class="crumb-item" onclick="selFolder=null;renderInventory()">Root</div>`;
+    path.forEach(f => {
+      html += `<div class="crumb-sep">/</div>
+               <div class="crumb-item ${f.id===selFolder?'cur':''}" onclick="selFolder='${f.id}';renderInventory()">${esc(f.name)}</div>`;
+    });
+    crumbEl.innerHTML = html;
   } else {
-    crumb.innerHTML = '';
-  }
-}
-
-function pickFolder(id) {
-  const el = document.getElementById('items-list');
-  const goingDeeper = id !== null && (selFolder === null || id !== selFolder);
-  selFolder = id;
-  renderInventory();
-  el.classList.remove('drill-in','drill-out');
-  void el.offsetWidth; // force reflow
-  el.classList.add(goingDeeper ? 'drill-in' : 'drill-out');
-}
-
-function renderItemList() {
-  const q = searchQ.toLowerCase();
-  let items = [...D.items];
-
-  if (q) {
-    // search cuts across all folders
-    items = items.filter(i =>
-      (i.title||'').toLowerCase().includes(q) ||
-      (i.barcode||'').toLowerCase().includes(q)
-    );
-  } else if (selFolder !== null) {
-    items = items.filter(i => i.folderId === selFolder);
-  } else {
-    // root view: no items shown, navigate into a folder to see them
-    items = [];
+    crumbEl.innerHTML = '';
   }
 
-  items.sort((a,b) => (a.title||'').localeCompare(b.title||''));
-
-  const el = document.getElementById('items-list');
-
-  // Subfolders at current level (hidden during search)
+  // Filter items & folders
+  const q = searchQ.trim().toLowerCase();
   let folderHtml = '';
+  
   if (!q) {
     const subs = childFolders(selFolder);
     folderHtml = subs.map(f => {
@@ -1411,6 +1384,7 @@ function renderItemList() {
         `${cnt} item${cnt!==1?'s':''}`,
         subCount ? `${subCount} folder${subCount!==1?'s':''}` : ''
       ].filter(Boolean).join(' · ');
+      
       return `<div class="subfolder-row" onclick="pickFolder('${f.id}')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="${f.color}" stroke="none" style="flex-shrink:0;opacity:0.9"><path d="M3 7a2 2 0 0 1 2-2h3.93a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 13.07 8H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>
         <div class="item-info">
@@ -1423,83 +1397,118 @@ function renderItemList() {
     }).join('');
   }
 
-  if (!folderHtml && !items.length) {
-    el.innerHTML = `<div class="empty-state">
-      <div class="eicon">📦</div>
-      <h3>${q ? 'No results' : 'No items yet'}</h3>
-      <p>${q ? 'Try a different search.' : 'Scan a barcode or tap + to add items.'}</p>
-    </div>`;
-    return;
+  let list = D.items;
+  if (q) {
+    list = list.filter(i => (i.title||'').toLowerCase().includes(q) || (i.barcode||'').toLowerCase().includes(q));
+  } else {
+    list = list.filter(i => i.folderId === selFolder || (selFolder === null && !i.folderId));
+  }
+  
+  // Also show f-default items at root
+  if (!q && selFolder === null) {
+     const defaultList = D.items.filter(i => i.folderId === 'f-default');
+     // merge without dupes
+     const existingIds = new Set(list.map(i => i.id));
+     defaultList.forEach(i => {
+       if (!existingIds.has(i.id)) list.push(i);
+     });
   }
 
-  const itemsHtml = items.map(item => {
-    const f = folderById(item.folderId);
-    const low = (item.quantity||0) <= 5;
-    return `<div class="item-row" onclick="openItemModal('${item.id}')">
-      <span class="item-fcolor" style="background:${f?.color||'#888'}"></span>
+  const listEl = document.getElementById('items-list');
+  if (!list.length && !folderHtml) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="eicon">📦</div>
+        <h3>${q ? 'No results found' : 'Folder is empty'}</h3>
+        <p>${q ? 'Try a different search term.' : 'Add folders or items here.'}</p>
+      </div>`;
+    return;
+  }
+  
+  let itemHtml = list.map(i => {
+    const f = folderById(i.folderId);
+    return `
+    <div class="item-row" onclick="openItemModal('${i.id}')">
+      <div class="item-fcolor" style="background:${f?.color || '#888'}"></div>
       <div class="item-info">
-        <div class="item-name">${esc(item.title)}</div>
-        <div class="item-bc">${esc(item.barcode)}</div>
+        <div class="item-name">${esc(i.title)}</div>
+        <div class="item-bc">${esc(i.barcode)}</div>
       </div>
       <div class="item-right">
-        <div class="item-qty ${low?'low':''}">${item.quantity||0}</div>
-        <div class="item-price">${fmtPrice(item.price)}</div>
+        <div class="item-qty ${i.quantity<=0?'low':''}">${i.quantity}</div>
+        <div class="item-price">$${(i.price||0).toFixed(2)}</div>
       </div>
     </div>`;
   }).join('');
-
-  el.innerHTML = folderHtml + itemsHtml;
+  
+  listEl.innerHTML = folderHtml + itemHtml;
 }
 
-document.getElementById('search-input').addEventListener('input', e => {
+function pickFolder(id) {
+  selFolder = id;
+  renderInventory();
+}
+
+document.getElementById('search-input').addEventListener('input', (e) => {
   searchQ = e.target.value;
-  renderItemList();
+  renderInventory();
 });
 
 // ═══════════════════════════════════════
-// ITEM MODAL
+// MODAL CORE
 // ═══════════════════════════════════════
+function openModal(id) {
+  const el = document.getElementById(id);
+  el.classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-back').forEach(mb => {
+  mb.addEventListener('click', e => {
+    if (e.target === mb) {
+      mb.classList.remove('open');
+      if (mb.id === 'modal-item') modalScannerStop(); // stop modal scanner if open
+    }
+  });
+});
 
+// ═══════════════════════════════════════
+// ITEM MODAL & FOLDER PICKER
+// ═══════════════════════════════════════
 let _editItemId = null;
+let _pickerFolderId = 'f-default'; // Final selected folder
+let _pickerNavId = null; // Current view level in picker
 
-function openItemModal(itemId, preBC='') {
-  _editItemId = itemId;
-  const isEdit = !!itemId;
-
-  document.getElementById('modal-item-title').textContent = isEdit ? 'Edit Item' : 'Add Item';
-  document.getElementById('ei-id').value = itemId || '';
-  document.getElementById('ei-del-wrap').style.display = isEdit ? 'block' : 'none';
-
-  let selFolderId = 'f-default';
-
-  if (isEdit) {
-    const item = itemById(itemId);
-    if (!item) return;
-    document.getElementById('ei-barcode').value = item.barcode || '';
-    document.getElementById('ei-title').value = item.title || '';
-    document.getElementById('ei-price').value = item.price || '';
-    document.getElementById('ei-qty').value = item.quantity != null ? item.quantity : '';
-    selFolderId = item.folderId || 'f-default';
+function openItemModal(id, initialBarcode='') {
+  _editItemId = id || null;
+  document.getElementById('modal-item-title').textContent = id ? 'Edit Item' : 'Add Item';
+  document.getElementById('ei-del-wrap').style.display = id ? 'block' : 'none';
+  
+  if (id) {
+    const i = itemById(id);
+    document.getElementById('ei-id').value = i.id;
+    document.getElementById('ei-barcode').value = i.barcode || '';
+    document.getElementById('ei-title').value = i.title || '';
+    document.getElementById('ei-price').value = i.price || '';
+    document.getElementById('ei-qty').value = i.quantity || 0;
+    _pickerFolderId = i.folderId || 'f-default';
   } else {
-    document.getElementById('ei-barcode').value = preBC;
+    document.getElementById('ei-id').value = '';
+    document.getElementById('ei-barcode').value = initialBarcode;
     document.getElementById('ei-title').value = '';
     document.getElementById('ei-price').value = '';
-    document.getElementById('ei-qty').value = '';
-    selFolderId = selFolder || 'f-default';
+    document.getElementById('ei-qty').value = 1;
+    // Default to current active folder, fallback to default
+    _pickerFolderId = (selFolder && selFolder !== null) ? selFolder : 'f-default';
   }
-
-  // Folder picker button
-  updateFolderPickerBtn(selFolderId);
-
+  
+  updateFolderPickBtn();
   openModal('modal-item');
 }
 
-let _pickerFolderId = 'f-default'; // currently selected
-let _pickerNavId = null;           // currently browsing level
-
-function updateFolderPickerBtn(fid) {
-  _pickerFolderId = fid;
-  const f = folderById(fid);
+function updateFolderPickBtn() {
+  const f = folderById(_pickerFolderId);
   document.getElementById('ei-folder-dot').style.background = f?.color || '#888';
   document.getElementById('ei-folder-name').textContent = f?.name || 'General';
 }
@@ -1518,12 +1527,13 @@ function folderPickerBack() {
 
 function renderFolderPickerList(goingUp) {
   const cur = _pickerNavId ? folderById(_pickerNavId) : null;
-
+  
   // Title & back button
   document.getElementById('fp-title').textContent = cur ? cur.name : 'Select Folder';
   const backBtn = document.getElementById('fp-back-btn');
   backBtn.style.display = _pickerNavId ? 'flex' : 'none';
-
+  backBtn.onclick = folderPickerBack; // Set handler dynamically
+  
   // "Use this folder" row — shown when inside any folder
   let selectRow = '';
   if (_pickerNavId) {
@@ -1537,77 +1547,93 @@ function renderFolderPickerList(goingUp) {
   }
 
   // Folders at current level — at root include all parentless folders (incl. f-default)
-  const subs = _pickerNavId === null
-    ? D.folders.filter(f => !f.parentId)
+  const subs = _pickerNavId === null 
+    ? D.folders.filter(f => !f.parentId) 
     : D.folders.filter(f => f.parentId === _pickerNavId);
-
+  
   const subRows = subs.map(f => {
     const hasSubs = D.folders.some(c => c.parentId === f.id);
     const isSelected = _pickerFolderId === f.id;
     // Navigate in if has subfolders, otherwise select directly
     const action = hasSubs ? `fpNav('${f.id}')` : `fpSelect('${f.id}')`;
-    return `<div class="fp-row ${isSelected?'selected':''}" onclick="${action}">
+    
+    return `<div class="fp-row ${isSelected && !hasSubs ?'selected':''}" onclick="${action}">
       <span style="width:10px;height:10px;border-radius:50%;background:${f.color};flex-shrink:0;display:inline-block"></span>
-      <span class="fp-row-name" style="${isSelected?'color:var(--accent)':''}">${esc(f.name)}</span>
-      ${isSelected?'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>':''}
-      ${hasSubs?`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 18l6-6-6-6"/></svg>`:''}
+      <span class="fp-row-name">${esc(f.name)}</span>
+      ${hasSubs ? 
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--txt3)" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>' : 
+        (isSelected ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' : '')}
     </div>`;
   }).join('');
-
-  const list = document.getElementById('fp-list');
-  list.innerHTML = selectRow + subRows;
-  list.classList.remove('fp-drill-in','fp-drill-out');
-  void list.offsetWidth;
-  list.classList.add(goingUp ? 'fp-drill-out' : 'fp-drill-in');
+  
+  const listEl = document.getElementById('fp-list');
+  listEl.innerHTML = (selectRow ? selectRow + '<div style="height:1px;background:var(--border);margin:4px 0"></div>' : '') + subRows;
+  
+  // Animation classes
+  listEl.className = goingUp ? 'fp-drill-out' : 'fp-drill-in';
+  setTimeout(() => listEl.className = '', 180);
 }
 
-function fpNav(fid) {
-  _pickerNavId = fid;
+function fpNav(id) {
+  _pickerNavId = id;
   renderFolderPickerList(false);
 }
 
-function fpSelect(fid) {
-  updateFolderPickerBtn(fid);
+function fpSelect(id) {
+  _pickerFolderId = id;
+  updateFolderPickBtn();
   closeModal('modal-folder-picker');
-}
-
-function getItemFolderSel() {
-  return _pickerFolderId || 'f-default';
 }
 
 document.getElementById('ei-save').addEventListener('click', () => {
   const bc = document.getElementById('ei-barcode').value.trim();
   const title = document.getElementById('ei-title').value.trim();
-  const price = parseFloat(document.getElementById('ei-price').value) || 0;
-  const qty = parseInt(document.getElementById('ei-qty').value) || 0;
-  const folderId = getItemFolderSel();
+  
+  if (!bc) return toast('Barcode is required', 'err');
+  if (!title) return toast('Title is required', 'err');
+  
+  // Check dupes for new items
+  if (!_editItemId && itemByBarcode(bc)) {
+    return toast('Barcode already exists!', 'err');
+  }
 
-  if (!bc) { toast('Barcode is required', 'err'); return; }
-  if (!title) { toast('Title is required', 'err'); return; }
+  const payload = {
+    barcode: bc,
+    title: title,
+    price: parseFloat(document.getElementById('ei-price').value) || 0,
+    quantity: parseInt(document.getElementById('ei-qty').value) || 0,
+    folderId: _pickerFolderId
+  };
 
   if (_editItemId) {
-    saveItem(_editItemId, {barcode:bc, title, price, quantity:qty, folderId});
+    const old = itemById(_editItemId);
+    saveItem(_editItemId, payload);
     pushHistory({action:'item_edit', itemId:_editItemId, itemTitle:title, barcode:bc});
-    toast('Item updated', 'ok');
+    toast('Item saved', 'ok');
   } else {
-    const newId = uid();
-    addItem({id:newId, barcode:bc, title, price, quantity:qty, folderId,
-             createdAt:Date.now(), updatedAt:Date.now()});
+    const newId = genId();
+    addItem({...payload, id:newId, createdAt:Date.now(), updatedAt:Date.now()});
     pushHistory({action:'item_add', itemId:newId, itemTitle:title, barcode:bc});
     toast('Item added', 'ok');
   }
+  
   modalScannerStop();
   closeModal('modal-item');
   renderInventory();
 });
 
-document.getElementById('ei-cancel').addEventListener('click', () => { modalScannerStop(); closeModal('modal-item'); });
+document.getElementById('ei-cancel').addEventListener('click', () => {
+  modalScannerStop();
+  closeModal('modal-item');
+});
 
 document.getElementById('ei-delete').addEventListener('click', () => {
   if (!_editItemId) return;
   if (!confirm('Delete this item permanently?')) return;
+  
   const deletedItem = itemById(_editItemId);
   pushHistory({action:'item_delete', itemId:_editItemId, itemTitle:deletedItem?.title, barcode:deletedItem?.barcode});
+  
   removeItem(_editItemId);
   modalScannerStop();
   closeModal('modal-item');
@@ -1622,18 +1648,17 @@ document.getElementById('fab-add').addEventListener('click', () => {
 // ═══════════════════════════════════════
 // FOLDER MODAL
 // ═══════════════════════════════════════
-
 let _editFolderId = null;
 let _folderColor = COLORS[0];
 
 function openFolderModal(folderId) {
   _editFolderId = folderId || null;
   const isEdit = !!(folderId && folderId !== 'f-default');
-
+  
   document.getElementById('modal-folder-title').textContent = isEdit ? 'Edit Folder' : 'Add Folder';
   document.getElementById('ef-id').value = folderId || '';
   document.getElementById('ef-del-wrap').style.display = isEdit ? 'block' : 'none';
-
+  
   if (isEdit) {
     const f = folderById(folderId);
     if (!f) return;
@@ -1643,38 +1668,34 @@ function openFolderModal(folderId) {
     document.getElementById('ef-name').value = '';
     _folderColor = COLORS[Math.floor(Math.random()*COLORS.length)];
   }
-
+  
   renderColorGrid();
   openModal('modal-folder');
 }
 
 function renderColorGrid() {
-  document.getElementById('ef-colors').innerHTML = COLORS.map(c =>
-    `<div class="cswatch ${c===_folderColor?'on':''}" style="background:${c}"
-          data-color="${c}" onclick="pickColor('${c}')"></div>`
+  document.getElementById('ef-colors').innerHTML = COLORS.map(c => 
+    `<div class="cswatch ${c===_folderColor?'on':''}" style="background:${c}" data-color="${c}" onclick="pickColor('${c}')"></div>`
   ).join('');
 }
-
 function pickColor(c) {
   _folderColor = c;
-  document.querySelectorAll('.cswatch').forEach(el =>
-    el.classList.toggle('on', el.dataset.color === c)
-  );
+  document.querySelectorAll('.cswatch').forEach(el => el.classList.remove('on'));
+  document.querySelector(`.cswatch[data-color="${c}"]`).classList.add('on');
 }
 
 document.getElementById('ef-save').addEventListener('click', () => {
   const name = document.getElementById('ef-name').value.trim();
-  if (!name) { toast('Folder name required', 'err'); return; }
-
+  if (!name) return toast('Folder name required', 'err');
+  
   if (_editFolderId) {
     saveFolder(_editFolderId, {name, color:_folderColor});
     pushHistory({action:'folder_edit', folderId:_editFolderId, folderName:name});
     toast('Folder updated', 'ok');
   } else {
-    const newFolder = {id:uid(), name, color:_folderColor};
-    if (selFolder) newFolder.parentId = selFolder;
-    addFolder(newFolder);
-    pushHistory({action:'folder_add', folderId:newFolder.id, folderName:name});
+    const newId = genId('f');
+    addFolder({id:newId, name, color:_folderColor, parentId: selFolder});
+    pushHistory({action:'folder_add', folderId:newId, folderName:name});
     toast('Folder created', 'ok');
   }
   closeModal('modal-folder');
@@ -1685,40 +1706,43 @@ document.getElementById('ef-cancel').addEventListener('click', () => closeModal(
 
 document.getElementById('ef-delete').addEventListener('click', () => {
   if (!_editFolderId || _editFolderId === 'f-default') return;
-  if (!confirm('Delete folder? Items will move to General.')) return;
+  if (!confirm('Delete folder? Items inside will be moved to General.')) return;
+  
   const deletedFolder = folderById(_editFolderId);
   pushHistory({action:'folder_delete', folderId:_editFolderId, folderName:deletedFolder?.name});
+  
   removeFolder(_editFolderId);
-  selFolder = null;
   closeModal('modal-folder');
+  if (selFolder === _editFolderId) selFolder = deletedFolder?.parentId || null;
   renderInventory();
   toast('Folder deleted');
 });
 
 document.getElementById('btn-folders').addEventListener('click', () => openFolderModal(null));
 
+
 // ═══════════════════════════════════════
 // HISTORY VIEW
 // ═══════════════════════════════════════
+function timeAgo(ms) {
+  const s = Math.floor((Date.now() - ms)/1000);
+  if (s < 60) return 'Just now';
+  if (s < 3600) return Math.floor(s/60)+'m ago';
+  if (s < 86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
 
 function renderHistory() {
   const el = document.getElementById('hist-list');
-  document.getElementById('hist-sub').textContent =
-    `${D.history.length} event${D.history.length!==1?'s':''}`;
-
   if (!D.history.length) {
-    el.innerHTML = `<div class="empty-state">
-      <div class="eicon">🕐</div>
-      <h3>No history yet</h3>
-      <p>Actions like scanning, adding, and deleting will appear here.</p>
-    </div>`;
+    el.innerHTML = `<div class="empty-state"><div class="eicon">⏳</div><h3>No history</h3><p>Activity will appear here.</p></div>`;
     return;
   }
-
+  
   el.innerHTML = D.history.map(h => {
-    let iconClass, iconChar, name, detail, badge = '';
-
-    switch (h.action) {
+    let iconClass = '', iconChar = '', name = '', detail = '', badge = '';
+    
+    switch(h.action) {
       case 'add':
         iconClass = 'add'; iconChar = '+';
         name = esc(h.itemTitle || 'Unknown');
@@ -1759,7 +1783,7 @@ function renderHistory() {
         iconClass = 'folder'; iconChar = '✎';
         name = esc(h.folderName || 'Folder');
         detail = `Folder renamed · ${timeAgo(h.ts)}`;
-        badge = `<div class="hist-delta" style="font-size:11px;color:#8b5cf6">FOLDER</div>`;
+        badge = `<div class="hist-delta" style="font-size:11px;color:#8b5cf6">EDITED</div>`;
         break;
       case 'folder_delete':
         iconClass = 'del'; iconChar = '✕';
@@ -1767,13 +1791,10 @@ function renderHistory() {
         detail = `Folder deleted · ${timeAgo(h.ts)}`;
         badge = `<div class="hist-delta rem" style="font-size:11px">DELETED</div>`;
         break;
-      default:
-        iconClass = 'add'; iconChar = '·';
-        name = esc(h.itemTitle || 'Event');
-        detail = timeAgo(h.ts);
     }
-
-    return `<div class="hist-row">
+    
+    return `
+    <div class="hist-row">
       <div class="hist-icon ${iconClass}">${iconChar}</div>
       <div class="hist-info">
         <div class="hist-name">${name}</div>
@@ -1785,60 +1806,77 @@ function renderHistory() {
 }
 
 document.getElementById('btn-clear-hist').addEventListener('click', () => {
-  if (!D.history.length) return;
-  if (!confirm('Clear all history?')) return;
-  D.history = []; dbSave();
-  renderHistory();
-  toast('History cleared');
+  if (confirm('Clear activity history?')) {
+    D.history = [];
+    dbSave();
+    renderHistory();
+  }
 });
 
 // ═══════════════════════════════════════
-// SETTINGS VIEW
+// SETTINGS
 // ═══════════════════════════════════════
-
 function renderSettings() {
   document.getElementById('sheets-url').value = D.settings.sheetsUrl || '';
-  document.getElementById('last-sync-lbl').textContent = D.settings.lastSync
-    ? 'Sent ' + timeAgo(D.settings.lastSync) : 'Never sent';
-  document.getElementById('storage-lbl').textContent = dbSize();
-  document.getElementById('stats-lbl').textContent =
-    `${D.items.length} items / ${D.folders.length} folders`;
-  document.getElementById('script-code-box').textContent = APPS_SCRIPT;
+  const last = D.settings.lastSync;
+  document.getElementById('last-sync-lbl').textContent = last ? new Date(last).toLocaleString() : 'Never synced';
+  
+  // Calc storage
+  const str = localStorage.getItem('stockscan_db') || '';
+  const bytes = new Blob([str]).size;
+  let sSize = bytes + ' B';
+  if (bytes > 1024) sSize = (bytes/1024).toFixed(1) + ' KB';
+  if (bytes > 1024*1024) sSize = (bytes/(1024*1024)).toFixed(1) + ' MB';
+  document.getElementById('storage-lbl').textContent = sSize;
 }
 
-document.getElementById('sheets-url').addEventListener('input', e => {
-  D.settings.sheetsUrl = e.target.value.trim(); dbSave();
+document.getElementById('sheets-url').addEventListener('change', (e) => {
+  D.settings.sheetsUrl = e.target.value.trim();
+  dbSave();
 });
 
+// FIX: Google Sheets Sync - Removed mode: 'no-cors'
 document.getElementById('btn-sync').addEventListener('click', async () => {
   const url = D.settings.sheetsUrl;
-  if (!url) { toast('Enter your Apps Script URL first', 'err'); return; }
-  toast('Sending to Sheets…');
+  if (!url || !url.startsWith('https://script.google.com/')) {
+    return toast('Enter a valid Apps Script Web App URL first', 'err');
+  }
+  if (!D.items.length) {
+    return toast('Inventory is empty', 'err');
+  }
+  
+  toast('Syncing...', '');
+  
+  const payload = {
+    items: D.items,
+    folders: D.folders
+  };
+  
   try {
-    await fetch(url, {
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        items: D.items,
-        folders: D.folders,
-        sheetId: ''
-      })
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
     });
-    // Note: mode:'no-cors' returns an opaque response — we can confirm the
-    // request was dispatched but cannot read the server's status or body.
-    // If the Apps Script URL or Sheet ID is wrong the request will still
-    // appear to succeed here; verify in your Google Sheet after syncing.
-    D.settings.lastSync = Date.now(); dbSave();
+    
+    if (!res.ok) throw new Error("Network response was not ok");
+    
+    D.settings.lastSync = Date.now();
+    dbSave();
     renderSettings();
-    toast('Request sent — verify in your Sheet', 'ok');
+    toast('Sync successful', 'ok');
+    
   } catch(e) {
-    // Only network-level failures (no connection, DNS) are catchable here.
-    toast('Network error — request not sent', 'err');
+    console.error(e);
+    toast('Sync failed. Check URL or network.', 'err');
   }
 });
 
 document.getElementById('btn-sheets-help').addEventListener('click', () => openModal('modal-sheets-help'));
 document.getElementById('btn-sheets-help-close').addEventListener('click', () => closeModal('modal-sheets-help'));
+
 document.getElementById('btn-copy-script').addEventListener('click', () => {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(APPS_SCRIPT)
@@ -1875,37 +1913,26 @@ document.getElementById('btn-export-csv').addEventListener('click', () => {
   toast('CSV exported', 'ok');
 });
 
-function csvCell(s) { return `"${String(s).replace(/"/g,'""')}"`; }
+function csvCell(s) {
+  return `"${String(s).replace(/"/g,'""')}"`;
+}
 
 // Import
-document.getElementById('btn-import').addEventListener('click', () =>
-  document.getElementById('import-file').click()
-);
-document.getElementById('import-file').addEventListener('change', e => {
+document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const r = new FileReader();
-  r.onload = ev => {
+  r.onload = (ev) => {
     try {
       const imp = JSON.parse(ev.target.result);
-      // Validate top-level shape
-      if (!Array.isArray(imp.items) || !Array.isArray(imp.folders)) {
-        throw new Error('Missing or invalid items/folders arrays');
-      }
-      // Validate each item has at minimum an id
-      const badItem = imp.items.find(x => !x || typeof x !== 'object' || !x.id);
-      if (badItem !== undefined) throw new Error('One or more items are missing an id');
-      // Validate each folder has id and name
-      const badFolder = imp.folders.find(x => !x || typeof x !== 'object' || !x.id || !x.name);
-      if (badFolder !== undefined) throw new Error('One or more folders are missing id or name');
-      if (!confirm(`Import ${imp.items.length} items and ${imp.folders.length} folders?\nYour current data will be auto-saved as a backup file first, then replaced.`)) return;
-      // Auto-backup current data before overwriting
-      if (D.items.length > 0 || D.folders.length > 1) {
-        const backupBlob = new Blob([JSON.stringify(D, null, 2)], {type:'application/json'});
-        dlBlob(backupBlob, `stockscan-pre-import-backup-${today()}.json`);
-      }
-      D = imp;
-      if (!D.settings) D.settings = {sheetsUrl:'', lastSync:null};
+      if (!imp.items || !imp.folders) throw new Error("Invalid structure");
+      D = {
+        folders:  imp.folders,
+        items:    imp.items,
+        history:  imp.history  || [],
+        settings: imp.settings || { sheetsUrl: '', lastSync: 0 }
+      };
       dbSave();
       renderSettings();
       toast(`Imported ${imp.items.length} items`, 'ok');
@@ -1923,7 +1950,9 @@ document.getElementById('btn-clear-all').addEventListener('click', () => {
   const settings = {...D.settings};
   D = {
     folders:[{id:'f-default',name:'General',color:'#f59e0b'}],
-    items:[], history:[], settings
+    items:[],
+    history:[],
+    settings
   };
   dbSave();
   renderSettings();
@@ -1933,19 +1962,21 @@ document.getElementById('btn-clear-all').addEventListener('click', () => {
 // ═══════════════════════════════════════
 // MODAL INLINE SCANNER
 // ═══════════════════════════════════════
-
 let _modalScanner = null;
 let _modalScannerRunning = false;
 
 async function modalScannerToggle() {
-  if (_modalScannerRunning) { modalScannerStop(); return; }
-
+  if (_modalScannerRunning) {
+    modalScannerStop();
+    return;
+  }
+  
   const popup = document.getElementById('scan-popup');
   popup.classList.add('open');
-
+  
   // Ensure the qr-modal div is empty
   document.getElementById('qr-modal').innerHTML = '';
-
+  
   let formats;
   try {
     formats = [
@@ -1957,67 +1988,48 @@ async function modalScannerToggle() {
       Html5QrcodeSupportedFormats.UPC_A,
       Html5QrcodeSupportedFormats.UPC_E,
       Html5QrcodeSupportedFormats.ITF,
-      Html5QrcodeSupportedFormats.DATA_MATRIX,
+      Html5QrcodeSupportedFormats.CODABAR,
     ];
-  } catch(e) { formats = undefined; }
-
-  const cfg = {fps:10, qrbox:{width:260,height:120}};
-  if (formats) cfg.formatsToSupport = formats;
-
-  _modalScanner = new Html5Qrcode('qr-modal', {verbose:false});
+  } catch(e) {}
+  
+  _modalScanner = new Html5Qrcode("qr-modal");
+  
   try {
     await _modalScanner.start(
-      {facingMode:'environment'}, cfg,
-      code => {
-        document.getElementById('ei-barcode').value = code;
+      { facingMode: "environment" },
+      { fps: 10, qrbox: {width:220, height:100}, formatsToSupport: formats },
+      (decodedText) => {
+        document.getElementById('ei-barcode').value = decodedText;
+        if (window.navigator && window.navigator.vibrate) window.navigator.vibrate(50);
         modalScannerStop();
-        // Focus title field for quick entry
-        setTimeout(() => document.getElementById('ei-title').focus(), 100);
-      },
-      () => {}
+      }
     );
     _modalScannerRunning = true;
   } catch(err) {
-    popup.classList.remove('open');
-    toast('Camera not available', 'err');
-    _modalScanner = null;
+    console.warn(err);
+    toast('Camera access failed', 'err');
+    modalScannerStop();
   }
 }
 
-async function modalScannerStop() {
+function modalScannerStop() {
+  document.getElementById('scan-popup').classList.remove('open');
   if (_modalScanner && _modalScannerRunning) {
-    try { await _modalScanner.stop(); } catch(e) {}
+    _modalScanner.stop().catch(()=>{});
+    _modalScannerRunning = false;
   }
-  _modalScanner = null;
-  _modalScannerRunning = false;
-  const popup = document.getElementById('scan-popup');
-  popup.classList.remove('open');
-  document.getElementById('qr-modal').innerHTML = '';
 }
-
-
-
-function openModal(id) {
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-document.querySelectorAll('.modal-back').forEach(backdrop => {
-  backdrop.addEventListener('click', e => {
-    if (e.target === backdrop) closeModal(backdrop.id);
-  });
-});
 
 // ═══════════════════════════════════════
-// HELPERS
+// UTILS
 // ═══════════════════════════════════════
-
 function dlBlob(blob, name) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = name; a.click();
+  a.href = url; a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
@@ -2035,6 +2047,7 @@ function today() {
     const c = document.createElement('canvas');
     c.width = c.height = 180;
     const ctx = c.getContext('2d');
+    
     // Rounded background
     ctx.fillStyle = '#0a0a0a';
     const r = 38;
@@ -2045,33 +2058,35 @@ function today() {
     ctx.lineTo(r,180); ctx.arcTo(0,180,0,180-r,r);
     ctx.lineTo(0,r); ctx.arcTo(0,0,r,0,r);
     ctx.closePath(); ctx.fill();
+    
     // Barcode lines
     ctx.fillStyle = '#f59e0b';
-    [[28,9],[43,5],[53,12],[70,7],[81,4],[90,11],[106,7],[118,5],[128,9],[142,4],[151,8]]
-      .forEach(([x,w]) => {
-        ctx.beginPath();
-        ctx.roundRect ? ctx.roundRect(x,58,w,65,2) : ctx.rect(x,58,w,65);
-        ctx.fill();
-      });
+    [[28,9],[43,5],[53,12],[70,7],[81,4],[90,11],[106,7],[118,5],[128,12],[145,7]].forEach(([x,w]) => {
+      ctx.fillRect(x,45,w,65);
+    });
+    
+    // Orange dot indicator
+    ctx.beginPath();
+    ctx.arc(148, 125, 6, 0, Math.PI*2);
+    ctx.fill();
+    
     const link = document.createElement('link');
     link.rel = 'apple-touch-icon';
-    link.href = c.toDataURL('image/png');
+    link.href = c.toDataURL();
     document.head.appendChild(link);
-  } catch(e) {}
+    
+    // Also use as standard favicon
+    const fav = document.createElement('link');
+    fav.rel = 'icon';
+    fav.href = c.toDataURL();
+    document.head.appendChild(fav);
+  } catch(e){}
 })();
 
-// Service worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () =>
-    navigator.serviceWorker.register('sw.js').catch(() => {})
-  );
-}
+// Start
+dbLoad();
+gotoTab('scan');
 
-// Boot
-window.addEventListener('load', () => {
-  Scanner.start();
-  renderInventory();
-});
 </script>
 </body>
 </html>

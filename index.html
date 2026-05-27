@@ -742,10 +742,6 @@ html,body{
       <input type="text" class="fi" id="ef-name" placeholder="e.g. Electronics">
     </div>
     <div class="fg">
-      <label>Inside Folder <span style="font-weight:400;color:var(--txt3)">(optional)</span></label>
-      <div class="fchips" id="ef-parent-chips" style="flex-wrap:wrap;gap:7px"></div>
-    </div>
-    <div class="fg">
       <label>Color</label>
       <div class="cswatch-grid" id="ef-colors"></div>
     </div>
@@ -1406,7 +1402,9 @@ document.getElementById('ef-save').addEventListener('click', () => {
     saveFolder(_editFolderId, {name, color:_folderColor});
     toast('Folder updated', 'ok');
   } else {
-    addFolder({id:uid(), name, color:_folderColor});
+    const newFolder = {id:uid(), name, color:_folderColor};
+    if (selFolder) newFolder.parentId = selFolder;
+    addFolder(newFolder);
     toast('Folder created', 'ok');
   }
   closeModal('modal-folder');

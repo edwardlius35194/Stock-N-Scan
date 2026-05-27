@@ -983,12 +983,7 @@ function dbLoad() {
   } catch(e) { console.error('DB Load Error', e); }
 }
 
-function dbSave() {
-  try {
-    localStorage.setItem('stockscan_db', JSON.stringify(D));
-    if (typeof fbPush === 'function') fbPush();
-  } catch(e) { console.error('DB Save Error', e); }
-}
+
 
 function pushHistory(entry) {
   entry.ts = Date.now();
@@ -1763,9 +1758,11 @@ document.getElementById('btn-clear-hist').addEventListener('click', () => {
 });
 
 function dbSave(skipPush = false) {
-  D.updatedAt = Date.now();
-  localStorage.setItem('stockscan_data', JSON.stringify(D));
-  if (!skipPush) fbPush();
+  try {
+    D.updatedAt = Date.now();
+    localStorage.setItem('stockscan_db', JSON.stringify(D));
+    if (!skipPush) fbPush();
+  } catch(e) { console.error('DB Save Error', e); }
 }
 
 // ═══════════════════════════════════════
@@ -1779,19 +1776,19 @@ let currentUser = null;
 function fbInit() {
   const urlInput = document.getElementById('firebase-url');
   const keyInput = document.getElementById('firebase-apikey');
-  if (urlInput) urlInput.value = D.settings.fbUrl || '';
-  if (keyInput) keyInput.value = D.settings.fbKey || '';
+  if (urlInput) urlInput.value = D.settings.firebaseUrl || '';
+  if (keyInput) keyInput.value = D.settings.firebaseApiKey || '';
 
-  if (D.settings.fbUrl && D.settings.fbKey) {
+  if (D.settings.firebaseUrl && D.settings.firebaseApiKey) {
     try {
       // Auto-extract Project ID from URL to construct Auth Domain
-      const urlObj = new URL(D.settings.fbUrl);
+      const urlObj = new URL(D.settings.firebaseUrl);
       const projectId = urlObj.hostname.split('.')[0].replace('-default-rtdb', '');
       
       if (!firebase.apps.length) {
         firebase.initializeApp({
-          apiKey: D.settings.fbKey,
-          databaseURL: D.settings.fbUrl,
+          apiKey: D.settings.firebaseApiKey,
+          databaseURL: D.settings.firebaseUrl,
           authDomain: projectId + ".firebaseapp.com",
           projectId: projectId
         });
@@ -1820,7 +1817,7 @@ function fbInit() {
               
               if (document.getElementById('view-inventory').classList.contains('active')) renderInventory();
               if (document.getElementById('view-history').classList.contains('active')) renderHistory();
-              showToast('Inventory synced from cloud', 'ok');
+              toast('Inventory synced from cloud', 'ok');
             }
           });
           
@@ -1836,7 +1833,7 @@ function fbInit() {
       });
     } catch(e) {
       console.error(e);
-      showToast('Firebase Init Error', 'err');
+      toast('Firebase Init Error', 'err');
     }
   }
 }
@@ -1864,20 +1861,20 @@ function setFbStatus(connected) {
 document.getElementById('btn-firebase-connect').addEventListener('click', () => {
   const url = document.getElementById('firebase-url').value.trim();
   const key = document.getElementById('firebase-apikey').value.trim();
-  if (!url || !key) return showToast('Enter URL & API Key', 'err');
-  D.settings.fbUrl = url;
-  D.settings.fbKey = key;
+  if (!url || !key) return toast('Enter URL & API Key', 'err');
+  D.settings.firebaseUrl = url;
+  D.settings.firebaseApiKey = key;
   dbSave(true);
   window.location.reload(); // Reload to re-initialize Firebase
 });
 
 document.getElementById('btn-firebase-login').addEventListener('click', () => {
   if (currentUser) {
-    firebase.auth().signOut().then(() => showToast('Signed out', 'ok'));
+    firebase.auth().signOut().then(() => toast('Signed out', 'ok'));
   } else {
     const provider = new firebase.auth.GoogleAuthProvider();
     firebase.auth().signInWithPopup(provider).catch(err => {
-      showToast(err.message, 'err');
+      toast(err.message, 'err');
     });
   }
 });
@@ -1905,23 +1902,12 @@ function renderSettings() {
   setFbStatus(_fbConnected);
 }
 
-document.getElementById('btn-firebase-connect').addEventListener('click', () => {
-  if (_fbConnected) {
-    fbDisconnect();
-    setFbStatus(false);
-    toast('Disconnected', '');
-  } else {
-    fbConnect();
-  }
-});
+
 
 document.getElementById('btn-firebase-help').addEventListener('click', () => openModal('modal-firebase-help'));
 document.getElementById('btn-firebase-help-close').addEventListener('click', () => closeModal('modal-firebase-help'));
 
-// Auto-reconnect on load if credentials are saved
-if (D.settings.firebaseUrl && D.settings.firebaseApiKey) {
-  fbConnect();
-}
+
 
 // ═══════════════════════════════════════
 // DATA EXPORT / IMPORT / CLEAR

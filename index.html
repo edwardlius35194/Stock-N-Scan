@@ -1473,14 +1473,14 @@ function openFolderModal(folderId) {
 function renderColorGrid() {
   document.getElementById('ef-colors').innerHTML = COLORS.map(c =>
     `<div class="cswatch ${c===_folderColor?'on':''}" style="background:${c}"
-          onclick="pickColor('${c}')"></div>`
+          data-color="${c}" onclick="pickColor('${c}')"></div>`
   ).join('');
 }
 
 function pickColor(c) {
   _folderColor = c;
   document.querySelectorAll('.cswatch').forEach(el =>
-    el.classList.toggle('on', el.style.background === c)
+    el.classList.toggle('on', el.dataset.color === c)
   );
 }
 
